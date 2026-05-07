@@ -167,14 +167,14 @@ let gmData={};     // gmData[r][g] = {total, profitabilitas, ...}
 let leaderData={}; // leaderData[r][fromG][toG] = {total, ...}
 let prevScores={};
 
-function getBPM_GM(r,g){ return (gmData[r]&&gmData[r]['g'+g]&&gmData[r]['g'+g].total)||0; }
+function getBPM_GM(r,g){ return (gmData['r'+r]&&gmData['r'+r]['g'+g]&&gmData['r'+r]['g'+g].total)||0; }
 
 function getBPM_Leader(r,g){
   // Average of all peer scores received by group g in round r
   let sum=0,count=0;
   for(let from=1;from<=5;from++){
     if(from===g)continue;
-    const score=(leaderData[r]&&leaderData[r]['from_g'+from]&&leaderData[r]['from_g'+from]['to_g'+g]&&leaderData[r]['from_g'+from]['to_g'+g].total)||null;
+    const score=(leaderData['r'+r]&&leaderData['r'+r]['from_g'+from]&&leaderData['r'+r]['from_g'+from]['to_g'+g]&&leaderData['r'+r]['from_g'+from]['to_g'+g].total)||null;
     if(score!==null){sum+=score;count++;}
   }
   return count>0?sum/count:null;

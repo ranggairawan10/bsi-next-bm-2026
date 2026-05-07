@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Laporan Penilaian | BSI Next BM School 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -138,6 +139,41 @@ html,body{min-height:100vh;font-family:'Plus Jakarta Sans',sans-serif;background
   .l2-input{border:1px solid #ccc!important;}
 }
 
+/* CPI card */
+.cpi-card{background:linear-gradient(135deg,var(--teal) 0%,#006B66 100%);border-radius:14px;padding:20px 24px;color:#fff;margin-bottom:20px;}
+.cpi-hero{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:12px;}
+.cpi-metric{text-align:center;}
+.cpi-metric-label{font-size:10px;font-weight:700;letter-spacing:.8px;opacity:.75;text-transform:uppercase;margin-bottom:4px;}
+.cpi-metric-value{font-size:26px;font-weight:800;line-height:1;}
+.cpi-metric-sub{font-size:10px;opacity:.65;margin-top:3px;}
+.cpi-badge{display:inline-block;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:800;margin-top:10px;}
+.cpi-lulus{background:rgba(72,187,120,.25);color:#9AE6B4;border:1px solid rgba(72,187,120,.4);}
+.cpi-belum{background:rgba(252,129,129,.2);color:#FEB2B2;border:1px solid rgba(252,129,129,.35);}
+.idx-chip{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;font-size:11px;font-weight:800;background:rgba(255,255,255,.18);}
+.bar-wrap{background:rgba(0,0,0,.08);border-radius:4px;height:6px;margin-top:4px;}
+.bar-fill{height:6px;border-radius:4px;background:rgba(255,255,255,.7);}
+.dim-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.dim-label{font-size:10px;color:rgba(255,255,255,.7);flex:0 0 140px;}
+.dim-val{font-size:10px;font-weight:700;color:#fff;flex:0 0 32px;text-align:right;}
+/* Excel import */
+.xl-import{background:rgba(34,84,61,.08);border:1.5px dashed rgba(34,84,61,.25);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.xl-btn{padding:8px 16px;border-radius:8px;border:1.5px solid var(--teal);background:transparent;color:var(--teal);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;}
+.xl-btn:hover{background:var(--teal);color:#fff;}
+.xl-status{font-size:11px;color:var(--mid);}
+.xl-status.ok{color:#22543D;font-weight:600;}
+.xl-status.err{color:var(--red);}
+/* Bulk print */
+.btn-print-all{padding:9px 20px;border-radius:9px;border:none;background:var(--gold);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;}
+.btn-print-all:hover{background:#e09a2a;}
+@media print{
+  @page{margin:12mm;size:A4;}
+  body{background:#fff!important;}
+  .hdr,.controls,.toast,.logout-btn{display:none!important;}
+  .report-card{break-before:page;margin-bottom:0!important;}
+  .report-card:first-child{break-before:avoid;}
+  .cpi-card{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .report-header{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
 /* Logout */
 .logout-btn{position:fixed;bottom:16px;left:16px;z-index:500;padding:6px 12px;border-radius:8px;border:1.5px solid rgba(0,0,0,.1);background:rgba(0,0,0,.05);color:var(--soft);font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;}
 .logout-btn:hover{background:rgba(197,48,48,.1);color:var(--red);border-color:rgba(197,48,48,.3);}
@@ -184,10 +220,17 @@ html,body{min-height:100vh;font-family:'Plus Jakarta Sans',sans-serif;background
       <option value="">— Pilih anggota —</option>
     </select>
   </div>
+  <div class="xl-import" id="xlImport">
+    <input type="file" id="xlFile" accept=".xlsx,.xls" style="display:none" onchange="handleExcelImport(this)">
+    <button class="xl-btn" onclick="document.getElementById('xlFile').click()">📊 Import Excel L2</button>
+    <span class="xl-status" id="xlStatus">Format: kolom NIK/Nama, Pre-Test, Post-Test</span>
+    <button class="xl-btn" onclick="saveL2ToFirebase()" style="border-color:var(--gold);color:var(--gold);" id="btnSaveL2">💾 Simpan L2 ke Firebase</button>
+  </div>
   <button class="btn-print" onclick="window.print()">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-    Print / Simpan PDF
+    Print Aktif
   </button>
+  <button class="btn-print-all" onclick="printAll()">🖨 Print Semua</button>
 </div>
 
 <!-- REPORT AREA -->
@@ -205,7 +248,7 @@ html,body{min-height:100vh;font-family:'Plus Jakarta Sans',sans-serif;background
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script>
 /* ── AUTH ── */
-if(localStorage.getItem('bsi_auth')!=='1'||localStorage.getItem('bsi_role')!=='report')
+if(sessionStorage.getItem('bsi_auth')!=='1'||sessionStorage.getItem('bsi_role')!=='report')
   location.href='index.html';
 
 /* ── FIREBASE ── */
@@ -235,13 +278,14 @@ async function loadAllData(){
   if(!db){setBadge('Offline','err');return;}
   setBadge('Memuat...','mid');
   try{
-    const paths=['/groups','/coach_data','/bpm_gm','/bpm_leader','/amanah_coins'];
+    const paths=['/groups','/coach_data','/bpm_gm','/bpm_leader','/amanah_coins','/l2_scores'];
     const results=await Promise.all(paths.map(p=>db.ref(p).once('value')));
     allData.groups=results[0].val()||{};
     allData.coach=results[1].val()||{};
     allData.bpmGM=results[2].val()||{};
     allData.bpmLeader=results[3].val()||{};
     allData.koin=results[4].val()||{};
+    allData.l2Scores=results[5].val()||{};
     loaded=true;
     setBadge('Data Termuat ✓','ok');
     showToast('Data berhasil dimuat dari Firebase','ok');
@@ -308,7 +352,60 @@ function getBPMCombined(g,r){
 
 function normBPM(v){
   if(v===null)return null;
-  return Math.round(((v+40)/80)*100);
+  // BPM combined already on -10..+10 scale
+  return Math.round(Math.min(100,Math.max(0,((v+10)/20)*100)));
+}
+
+/* ── CPI OPSI A ── */
+function getIdx(score){
+  if(score>=90)return 4;
+  if(score>=80)return 3;
+  if(score>=70)return 2;
+  return 1;
+}
+
+function calcCPI(l2Post,l3Sim){
+  if(l2Post===null||l2Post===undefined||l3Sim===null||l3Sim===undefined)return null;
+  return Math.round((getIdx(l2Post)*2+getIdx(l3Sim)*16)/18*100)/100;
+}
+
+function cpiPredikat(cpi){
+  if(cpi===null)return{label:'—',cls:'',lulus:null};
+  if(cpi>=3.00)return{label:'LULUS',cls:'cpi-lulus',lulus:true};
+  return{label:'BELUM LULUS',cls:'cpi-belum',lulus:false};
+}
+
+// L3 SIM per member = avg of 4 rounds
+function getL3SimMember(g,m){
+  let sum=0,cnt=0;
+  for(let r=1;r<=4;r++){
+    const beh=getBehaviorByGroup(g,m,r);
+    const bpm=normBPM(getBPMCombined(g,r));
+    const l3=getL3(beh,bpm);
+    if(l3!==null){sum+=l3;cnt++;}
+  }
+  return cnt>0?Math.round((sum/cnt)*10)/10:null;
+}
+
+// Get L2 post score for member (from imported data or Firebase)
+function getL2Post(g,m){
+  const key='g'+g;
+  if(allData.l2Scores&&allData.l2Scores[key]){
+    const ms=allData.l2Scores[key];
+    const k=Object.keys(ms)[m-1];
+    if(k&&ms[k]&&ms[k].post!==undefined)return ms[k].post;
+  }
+  return null;
+}
+
+function getL2Pre(g,m){
+  const key='g'+g;
+  if(allData.l2Scores&&allData.l2Scores[key]){
+    const ms=allData.l2Scores[key];
+    const k=Object.keys(ms)[m-1];
+    if(k&&ms[k]&&ms[k].pre!==undefined)return ms[k].pre;
+  }
+  return null;
 }
 
 function getL3(behaviorScore,bpmNorm){
@@ -432,8 +529,8 @@ function renderReport(){
 /* ═══════════════════════════════════════════════
    INDIVIDUAL REPORT
 ═══════════════════════════════════════════════ */
-function renderIndividualReport(g,m){
-  const wrap=document.getElementById('reportWrap');
+function renderIndividualReport(g,m,container){
+  const wrap=container||document.getElementById('reportWrap');
   const mems=allData.groups&&allData.groups['g'+g]&&allData.groups['g'+g].members;
   const memberName=(mems&&mems[m])||('Anggota '+(m+1));
   const groupName=GROUPS[g]||'Kelompok '+g;
@@ -511,6 +608,10 @@ function renderIndividualReport(g,m){
   }
 
   const uid='l2-'+g+'-'+m;
+  // Pre-populate L2 from Firebase if available
+  const l2PostVal=getL2Post(g,m);
+  const l2PreVal=getL2Pre(g,m);
+  const l2Prefill=l2PostVal!==null?l2PostVal:'';
 
   wrap.innerHTML=`
   <div class="report-card" id="printReport">
@@ -537,26 +638,35 @@ function renderIndividualReport(g,m){
         <div class="l2-row">
           <span class="l2-label">&#9733; Masukkan Skor L2 (Bank Soal 0-100)</span>
           <input class="l2-input" type="number" id="${uid}" min="0" max="100" placeholder="0"
+            value="${l2Prefill}"
             oninput="calcFinal('${uid}',${l3Final})">
           <span class="l2-hint">L2 = 30% &bull; L3 = 70%</span>
         </div>
-        <div class="final-box" id="finalBox-${uid}">
-          <div class="fb-item">
-            <div class="fb-label">L2 · Bank Soal (30%)</div>
-            <div class="fb-value" id="fb-l2-${uid}">—</div>
-            <div class="fb-sub">Input manual</div>
+        <!-- CPI Display -->
+        <div class="cpi-card">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;opacity:.75;">FINAL CPI — OPSI A</div>
+          <div class="cpi-hero">
+            <div class="cpi-metric">
+              <div class="cpi-metric-label">L2 POST · Bank Soal</div>
+              <div class="cpi-metric-value" id="fb-l2-${uid}">—</div>
+              <div class="cpi-metric-sub">Input Excel / Manual</div>
+            </div>
+            <div class="cpi-metric">
+              <div class="cpi-metric-label">L3 SIM · Simulasi</div>
+              <div class="cpi-metric-value">${l3Final>0?l3Final:'—'}</div>
+              <div class="cpi-metric-sub">BPM×30% + Behavior×70%</div>
+            </div>
+            <div class="cpi-metric">
+              <div class="cpi-metric-label">CPI Final</div>
+              <div class="cpi-metric-value" id="fb-cpi-${uid}" style="font-size:32px">—</div>
+              <div class="cpi-metric-sub" id="fb-grade-${uid}">—</div>
+            </div>
           </div>
-          <div class="fb-item">
-            <div class="fb-label">L3 · Simulasi (70%)</div>
-            <div class="fb-value ${scoreClass(l3Final)}">${l3Final>0?l3Final:'—'}</div>
-            <div class="fb-sub">BPM 30% + Behavior 70%</div>
-          </div>
-          <div class="fb-item">
-            <div class="fb-label">Nilai Akhir</div>
-            <div class="fb-value" id="fb-final-${uid}">—</div>
-            <div class="fb-sub" id="fb-grade-${uid}">—</div>
-          </div>
+          <div style="margin-top:8px;font-size:10px;opacity:.7;">CPI = (Idx_POST×2 + Idx_SIM×16) / 18 · Target ≥ 3.00</div>
+          <span class="cpi-badge" id="fb-lulus-${uid}">—</span>
+          <div style="margin-top:6px;font-size:10px;opacity:.65;" id="fb-final-${uid}">—</div>
         </div>
+        <div class="final-box" id="finalBox-${uid}" style="display:none"></div>
       </div>
 
       <!-- BEHAVIOR SCORE -->
@@ -633,6 +743,12 @@ function renderIndividualReport(g,m){
   </div>`;
 }
 
+// Auto-calc if prefill exists
+function renderIndividualAfterInit(uid,l3Sim){
+  const el=document.getElementById(uid);
+  if(el&&el.value)calcFinal(uid,l3Sim);
+}
+
 function getBehaviorByGroupRaw(g,m,r){
   if(!allData.coach||!allData.coach['g'+g]||!allData.coach['g'+g]['r'+r])return{};
   const sc=allData.coach['g'+g]['r'+r].scores;
@@ -640,22 +756,117 @@ function getBehaviorByGroupRaw(g,m,r){
   return sc[m]||{};
 }
 
-function calcFinal(uid,l3){
+function calcFinal(uid,l3Sim){
   const l2Val=parseFloat(document.getElementById(uid).value);
   const l2el=document.getElementById('fb-l2-'+uid);
   const finalEl=document.getElementById('fb-final-'+uid);
   const gradeEl=document.getElementById('fb-grade-'+uid);
-  if(isNaN(l2Val)||l2Val<0){
-    if(l2el)l2el.textContent='—';
-    if(finalEl)finalEl.textContent='—';
-    if(gradeEl)gradeEl.textContent='—';
+  const cpiEl=document.getElementById('fb-cpi-'+uid);
+  const lulusEl=document.getElementById('fb-lulus-'+uid);
+  if(isNaN(l2Val)||l2Val<0||l2Val>100){
+    [l2el,finalEl,gradeEl].forEach(el=>{if(el)el.textContent='—';});
+    if(cpiEl)cpiEl.textContent='—';
+    if(lulusEl){lulusEl.textContent='—';lulusEl.className='cpi-badge';}
     return;
   }
-  const final=Math.round((l2Val*0.3+l3*0.7)*10)/10;
-  const grade=getGrade(final);
+  // CPI Opsi A
+  const cpi=calcCPI(l2Val,l3Sim||0);
+  const pred=cpiPredikat(cpi);
   if(l2el)l2el.textContent=l2Val.toFixed(1);
-  if(finalEl){finalEl.textContent=final.toFixed(1);finalEl.className='fb-value '+grade.cls;}
-  if(gradeEl)gradeEl.textContent='Predikat '+grade.g;
+  if(finalEl){finalEl.textContent=cpi!==null?cpi.toFixed(2):'—';finalEl.className='fb-value';}
+  if(gradeEl)gradeEl.textContent='Idx POST='+getIdx(l2Val)+' · Idx SIM='+getIdx(l3Sim||0);
+  if(cpiEl)cpiEl.textContent=cpi!==null?cpi.toFixed(2):'—';
+  if(lulusEl){lulusEl.textContent=pred.label;lulusEl.className='cpi-badge '+pred.cls;}
+}
+
+// Excel import handler
+function handleExcelImport(input){
+  if(!input.files||!input.files[0])return;
+  const statusEl=document.getElementById('xlStatus');
+  statusEl.textContent='Membaca file...';statusEl.className='xl-status';
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{header:1});
+      // Auto-detect: find name column and score columns
+      let parsed={};let count=0;
+      rows.forEach((row,ri)=>{
+        if(ri===0)return; // skip header
+        const name=(row[0]||row[1]||'').toString().trim();
+        const pre=parseFloat(row[1])||parseFloat(row[2])||null;
+        const post=parseFloat(row[2])||parseFloat(row[3])||null;
+        if(name&&(pre!==null||post!==null)){
+          parsed[name.toLowerCase().replace(/[^a-z0-9]/g,'')+ri]={name,pre,post};
+          count++;
+        }
+      });
+      allData.xlImport=parsed;
+      allData.xlRows=rows.slice(1).filter(r=>r.length>0);
+      statusEl.textContent=`${count} data diimport. Klik 'Simpan L2' untuk sync ke Firebase.`;
+      statusEl.className='xl-status ok';
+      // Try to match to current group
+      matchExcelToGroup();
+    }catch(err){
+      statusEl.textContent='Error: '+err.message;
+      statusEl.className='xl-status err';
+    }
+  };
+  reader.readAsArrayBuffer(input.files[0]);
+}
+
+function matchExcelToGroup(){
+  const g=parseInt(document.getElementById('selGroup').value);
+  if(!g||!allData.xlRows)return;
+  const mems=allData.groups&&allData.groups['g'+g]&&allData.groups['g'+g].members||[];
+  if(!allData.l2Scores)allData.l2Scores={};
+  if(!allData.l2Scores['g'+g])allData.l2Scores['g'+g]={};
+  // Match by row order (assume Excel rows match member order)
+  allData.xlRows.forEach((row,idx)=>{
+    if(idx>=6)return;
+    const post=parseFloat(row[2])||parseFloat(row[3])||null;
+    const pre=parseFloat(row[1])||parseFloat(row[2])||null;
+    allData.l2Scores['g'+g]['m'+(idx+1)]={name:mems[idx]||('Anggota '+(idx+1)),post,pre};
+  });
+}
+
+function saveL2ToFirebase(){
+  if(!db){showToast('Firebase belum aktif','err');return;}
+  const g=parseInt(document.getElementById('selGroup').value);
+  if(!g){showToast('Pilih kelompok dulu','warn');return;}
+  if(!allData.l2Scores||!allData.l2Scores['g'+g]){showToast('Belum ada data L2 untuk kelompok ini','warn');return;}
+  db.ref('/l2_scores/g'+g).set(allData.l2Scores['g'+g])
+    .then(()=>showToast('L2 scores tersimpan ke Firebase ✓','ok'))
+    .catch(e=>showToast('Gagal: '+e.message,'err'));
+}
+
+function printAll(){
+  const g=parseInt(document.getElementById('selGroup').value);
+  if(!g){showToast('Pilih kelompok dulu','warn');return;}
+  if(!loaded){showToast('Data belum dimuat','warn');return;}
+  const wrap=document.getElementById('reportWrap');
+  let html='';
+  for(let m=1;m<=6;m++) html+=buildIndividualHTML(g,m);
+  wrap.innerHTML=html;
+  // Re-calc if L2 data exists
+  for(let m=1;m<=6;m++){
+    const uid='l2-'+g+'-'+m;
+    const l3=getL3SimMember(g,m-1);
+    const l2=getL2Post(g,m);
+    if(l2!==null){
+      const el=document.getElementById(uid);
+      if(el){el.value=l2;calcFinal(uid,l3||0);}
+    }
+  }
+  setTimeout(()=>window.print(),400);
+}
+
+// Build individual HTML for bulk print
+function buildIndividualHTML(g,m){
+  const wrap=document.createElement('div');
+  renderIndividualReport(g,m,wrap);
+  return wrap.innerHTML||'';
 }
 
 /* ═══════════════════════════════════════════════
@@ -784,10 +995,10 @@ function renderGroupReport(g){
         <table class="rtable">
           <thead><tr>
             <th>Nama Anggota</th>
-            <th class="center">L3 Simulasi /100</th>
-            <th class="center">L2 Bank Soal (input)</th>
-            <th class="center">Nilai Akhir</th>
-            <th class="center">Predikat</th>
+            <th class="center">L3 SIM</th>
+            <th class="center">L2 POST (input)</th>
+            <th class="center">CPI</th>
+            <th class="center">Status</th>
           </tr></thead>
           <tbody>${memberRows}</tbody>
         </table>
@@ -806,20 +1017,25 @@ function renderGroupReport(g){
   </div>`;
 }
 
-function calcGroupMember(uid,l3){
-  const l2Val=parseFloat(document.getElementById(uid)?.value);
+function calcGroupMember(uid,l3Sim,g,m){
+  const inputEl=document.getElementById(uid);
+  const l2Val=inputEl?parseFloat(inputEl.value):NaN;
   const finalEl=document.getElementById('gfinal-'+uid);
   const gradeEl=document.getElementById('ggrade-'+uid);
-  if(!finalEl||!gradeEl)return;
-  if(isNaN(l2Val)||l2Val<0){
-    finalEl.innerHTML='<span class="score-zero">—</span>';
-    gradeEl.innerHTML='<span class="score-zero">—</span>';
+  const cpiEl=document.getElementById('gcpi-'+uid);
+  if(!finalEl)return;
+  if(isNaN(l2Val)||l2Val<0||l2Val>100){
+    if(finalEl)finalEl.innerHTML='<span class="score-zero">—</span>';
+    if(gradeEl)gradeEl.innerHTML='<span class="score-zero">—</span>';
+    if(cpiEl)cpiEl.innerHTML='<span class="score-zero">—</span>';
     return;
   }
-  const final=Math.round((l2Val*0.3+(l3||0)*0.7)*10)/10;
-  const grade=getGrade(final);
-  finalEl.innerHTML=`<span class="${grade.cls}" style="font-weight:700">${final}</span>`;
-  gradeEl.innerHTML=`<span class="${grade.cls}" style="font-weight:700">${grade.g}</span>`;
+  // CPI Opsi A
+  const cpi=calcCPI(l2Val,l3Sim||0);
+  const pred=cpiPredikat(cpi);
+  if(finalEl)finalEl.innerHTML=`<span style="font-weight:800">${cpi!==null?cpi:'—'}</span>`;
+  if(gradeEl)gradeEl.innerHTML=`<span class="${pred.cls.replace('cpi-lulus','score-hi').replace('cpi-belum','score-lo')}" style="font-weight:700">${cpi!==null?(cpi>=3?'≥3.00':'<3.00'):'—'}</span>`;
+  if(cpiEl)cpiEl.innerHTML=`<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;${pred.lulus===true?'background:rgba(72,187,120,.15);color:#22543D':pred.lulus===false?'background:rgba(197,48,48,.1);color:#C53030':'background:var(--in);color:var(--soft)'}">${pred.label}</span>`;
 }
 
 /* ── UTILITIES ── */
@@ -831,7 +1047,7 @@ function showToast(msg,type){
 }
 
 function doLogout(){
-  ['bsi_auth','bsi_role','bsi_group','bsi_gname','bsi_label'].forEach(k=>localStorage.removeItem(k));
+  ['bsi_auth','bsi_role','bsi_group','bsi_gname','bsi_label'].forEach(k=>sessionStorage.removeItem(k));
   location.href='index.html';
 }
 

@@ -173,11 +173,11 @@
 (function(){
   const p = new URLSearchParams(location.search);
   if(p.get('logout')==='1'){
-    ['bsi_auth','bsi_role','bsi_group','bsi_gname','bsi_label'].forEach(k=>localStorage.removeItem(k));
+    ['bsi_auth','bsi_role','bsi_group','bsi_gname','bsi_label'].forEach(k=>sessionStorage.removeItem(k));
   } else {
     // Auto-redirect jika sesi masih valid
-    const auth = localStorage.getItem('bsi_auth');
-    const role = localStorage.getItem('bsi_role');
+    const auth = sessionStorage.getItem('bsi_auth');
+    const role = sessionStorage.getItem('bsi_role');
     const pages = {admin:'admin.html',gamemaster:'gamemaster.html',projector:'projector.html',board:'board.html',coach:'coach.html',leader:'leader.html',report:'report.html'};
     if(auth && role && pages[role]) { location.replace(pages[role]); }
   }
@@ -313,11 +313,11 @@ function go(){
   const b=document.getElementById('btn');
   b.classList.add('ld'); b.disabled=true;
   document.getElementById('bArr').style.display='none';
-  localStorage.setItem('bsi_role', cur.role);
-  localStorage.setItem('bsi_group', cur.g);
-  localStorage.setItem('bsi_label', cur.lbl);
-  localStorage.setItem('bsi_gname', cur.g?GRP[cur.g]:'');
-  localStorage.setItem('bsi_auth','1');
+  sessionStorage.setItem('bsi_role', cur.role);
+  sessionStorage.setItem('bsi_group', cur.g);
+  sessionStorage.setItem('bsi_label', cur.lbl);
+  sessionStorage.setItem('bsi_gname', cur.g?GRP[cur.g]:'');
+  sessionStorage.setItem('bsi_auth','1');
   setTimeout(()=>location.href=cur.page, 700);
 }
 </script>

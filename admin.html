@@ -133,6 +133,20 @@
     <div style="font-size:11px;color:var(--soft);">Nama anggota per kelompok diinput oleh Branch Coach masing-masing.</div>
   </div>
 
+
+  <!-- MEMBER MANAGEMENT -->
+  <div class="card full-width">
+    <div class="card-title">Daftar Anggota Kelompok</div>
+    <div style="font-size:11px;color:var(--soft);margin-bottom:12px;">Isi nama 30 peserta (5 kelompok × 6 anggota). Tersimpan otomatis ke Firebase. Branch Coach akan langsung melihat nama ini.</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;" id="memberGrid">
+      <div style="color:var(--soft);font-size:12px;">Menunggu koneksi Firebase...</div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn-ctrl btn-teal" onclick="saveAllMembers()" style="flex:0 0 auto;font-size:12px;padding:8px 16px;">Simpan Semua Nama</button>
+      <button class="btn-ctrl btn-outline" onclick="loadDummyNames()" style="flex:0 0 auto;font-size:12px;padding:8px 16px;">Isi Dummy (Testing)</button>
+    </div>
+  </div>
+
   <!-- DANGER ZONE -->
   <div class="card full-width">
     <div class="card-title">Danger Zone</div>
@@ -154,7 +168,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script>
-const _r=localStorage.getItem('bsi_role'),_a=localStorage.getItem('bsi_auth');
+const _r=sessionStorage.getItem('bsi_role'),_a=sessionStorage.getItem('bsi_auth');
 if(_a!=='1'||_r!=='admin') location.href='index.html';
 
 const FB={apiKey:"AIzaSyBwc9qm9tuoBK7ba2E7k8IY3bjlXTNRoUc",authDomain:"bsi-next-bm-2026.firebaseapp.com",
@@ -225,12 +239,14 @@ function updateKoinTable(data){
 }
 
 window.addEventListener('DOMContentLoaded',()=>{
+  buildMemberGrid();
   if(!db){
     document.getElementById('statusText').textContent='Firebase belum dikonfigurasi';
     document.getElementById('statusDot').classList.add('red');
     document.getElementById('sessionStatus').textContent='Firebase tidak aktif';
     return;
   }
+  buildMemberGrid();
   db.ref('/session').on('value',snap=>{
     const s=snap.val()||{};
     const r=s.currentRound||1;
@@ -244,6 +260,69 @@ window.addEventListener('DOMContentLoaded',()=>{
   db.ref('/amanah_coins').on('value',snap=>updateKoinTable(snap.val()));
 });
 
+
+
+// ── MEMBER MANAGEMENT ──
+const GROUPS_LIST=[
+  {g:1,name:'Borobudur'},
+  {g:2,name:'Prambanan'},
+  {g:3,name:'Diponegoro'},
+  {g:4,name:'Gajah Mada'},
+  {g:5,name:'Majapahit'}
+];
+
+function buildMemberGrid(){
+  const grid=document.getElementById('memberGrid');
+  if(!grid)return;
+  grid.innerHTML=GROUPS_LIST.map(({g,name})=>`
+    <div class="member-group">
+      <h4>Kel. ${g} · ${name}</h4>
+      ${[1,2,3,4,5,6].map(m=>`
+        <div class="member-num">Anggota ${m}</div>
+        <input class="member-input" id="m-${g}-${m}" placeholder="Nama peserta..." type="text">
+      `).join('')}
+    </div>
+  `).join('');
+  // Load existing data
+  if(db){
+    db.ref('/groups').once('value').then(snap=>{
+      const v=snap.val()||{};
+      GROUPS_LIST.forEach(({g})=>{
+        const members=(v['g'+g]&&v['g'+g].members)||[];
+        members.forEach((name,i)=>{
+          const el=document.getElementById('m-'+g+'-'+(i+1));
+          if(el&&name)el.value=name;
+        });
+      });
+    });
+  }
+}
+
+function saveAllMembers(){
+  if(!db){showToast('Firebase belum aktif','err');return;}
+  const updates={};
+  GROUPS_LIST.forEach(({g})=>{
+    const arr=[];
+    for(let m=1;m<=6;m++){
+      const el=document.getElementById('m-'+g+'-'+m);
+      arr.push(el?el.value.trim():'');
+    }
+    updates['/groups/g'+g+'/members']=arr;
+  });
+  db.ref().update(updates).then(()=>showToast('30 nama tersimpan ke Firebase','ok'))
+    .catch(e=>showToast('Gagal simpan: '+e.message,'err'));
+}
+
+function loadDummyNames(){
+  GROUPS_LIST.forEach(({g,name})=>{
+    for(let m=1;m<=6;m++){
+      const el=document.getElementById('m-'+g+'-'+m);
+      if(el)el.value='Peserta '+name+' '+m;
+    }
+  });
+  showToast('Dummy names diisi (belum disimpan)','warn');
+}
+
 function showToast(msg,type){
   const t=document.getElementById('toast');
   t.textContent=msg;t.className='toast toast-'+type+' show';
@@ -252,6 +331,11 @@ function showToast(msg,type){
 </script>
 
 <style>
+.member-group{background:var(--in);border:1px solid var(--border);border-radius:10px;padding:12px;}
+.member-group h4{font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.member-input{width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:12px;background:#fff;margin-bottom:5px;outline:none;}
+.member-input:focus{border-color:var(--teal);}
+.member-num{font-size:10px;color:var(--soft);font-weight:700;margin-bottom:2px;}
 .logout-btn{position:fixed;bottom:16px;left:16px;z-index:500;
   padding:6px 12px;border-radius:8px;border:1.5px solid rgba(255,255,255,.2);
   background:rgba(0,0,0,.35);backdrop-filter:blur(6px);
@@ -264,11 +348,11 @@ function showToast(msg,type){
 <script>
 function doLogout(){
   if(confirm('Keluar dari sesi ini?')){
-    localStorage.removeItem('bsi_auth');
-    localStorage.removeItem('bsi_role');
-    localStorage.removeItem('bsi_group');
-    localStorage.removeItem('bsi_gname');
-    localStorage.removeItem('bsi_label');
+    sessionStorage.removeItem('bsi_auth');
+    sessionStorage.removeItem('bsi_role');
+    sessionStorage.removeItem('bsi_group');
+    sessionStorage.removeItem('bsi_gname');
+    sessionStorage.removeItem('bsi_label');
     location.href='index.html?logout=1';
   }
 }

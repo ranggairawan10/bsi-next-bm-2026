@@ -88,10 +88,10 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script>
-const _r=localStorage.getItem('bsi_role'),_a=localStorage.getItem('bsi_auth');
+const _r=sessionStorage.getItem('bsi_role'),_a=sessionStorage.getItem('bsi_auth');
 if(_a!=='1'||_r!=='leader') location.href='index.html';
-const myGroup=parseInt(localStorage.getItem('bsi_group'))||1;
-const myGroupName=localStorage.getItem('bsi_gname')||'Kelompok '+myGroup;
+const myGroup=parseInt(sessionStorage.getItem('bsi_group'))||1;
+const myGroupName=sessionStorage.getItem('bsi_gname')||'Kelompok '+myGroup;
 document.getElementById('groupBadge').textContent=myGroupName+' — Leader';
 
 const FB={apiKey:"AIzaSyBwc9qm9tuoBK7ba2E7k8IY3bjlXTNRoUc",authDomain:"bsi-next-bm-2026.firebaseapp.com",
@@ -234,11 +234,11 @@ document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='s'){e.preventDefa
 <script>
 function doLogout(){
   if(confirm('Keluar dari sesi ini?')){
-    localStorage.removeItem('bsi_auth');
-    localStorage.removeItem('bsi_role');
-    localStorage.removeItem('bsi_group');
-    localStorage.removeItem('bsi_gname');
-    localStorage.removeItem('bsi_label');
+    sessionStorage.removeItem('bsi_auth');
+    sessionStorage.removeItem('bsi_role');
+    sessionStorage.removeItem('bsi_group');
+    sessionStorage.removeItem('bsi_gname');
+    sessionStorage.removeItem('bsi_label');
     location.href='index.html?logout=1';
   }
 }

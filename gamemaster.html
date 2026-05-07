@@ -593,7 +593,7 @@ window.updateFbStatus = function(ok, msg) {
 };
 </script>
 <script>
-if(localStorage.getItem('bsi_auth')!=='1'||localStorage.getItem('bsi_role')!=='gamemaster')
+if(sessionStorage.getItem('bsi_auth')!=='1'||sessionStorage.getItem('bsi_role')!=='gamemaster')
   location.href='index.html';
 
 const FB={apiKey:"AIzaSyBwc9qm9tuoBK7ba2E7k8IY3bjlXTNRoUc",authDomain:"bsi-next-bm-2026.firebaseapp.com",
@@ -959,11 +959,11 @@ function updateFbStatus(ok, msg) {
 
 function doLogout(){
   if(confirm('Keluar dari sesi ini?')){
-    localStorage.removeItem('bsi_auth');
-    localStorage.removeItem('bsi_role');
-    localStorage.removeItem('bsi_group');
-    localStorage.removeItem('bsi_gname');
-    localStorage.removeItem('bsi_label');
+    sessionStorage.removeItem('bsi_auth');
+    sessionStorage.removeItem('bsi_role');
+    sessionStorage.removeItem('bsi_group');
+    sessionStorage.removeItem('bsi_gname');
+    sessionStorage.removeItem('bsi_label');
     location.href='index.html?logout=1';
   }
 }

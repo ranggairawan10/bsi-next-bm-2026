@@ -229,10 +229,10 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script>
-const _role=localStorage.getItem('bsi_role'),_auth=localStorage.getItem('bsi_auth');
+const _role=sessionStorage.getItem('bsi_role'),_auth=sessionStorage.getItem('bsi_auth');
 if(_auth!=='1'||_role!=='coach') location.href='index.html';
-const myGroup=parseInt(localStorage.getItem('bsi_group'))||1;
-const myGroupName=localStorage.getItem('bsi_gname')||('Kelompok '+myGroup);
+const myGroup=parseInt(sessionStorage.getItem('bsi_group'))||1;
+const myGroupName=sessionStorage.getItem('bsi_gname')||('Kelompok '+myGroup);
 document.getElementById('groupBadge').textContent=myGroupName;
 document.getElementById('setupSub').textContent='Masukkan nama 6 anggota '+myGroupName;
 
@@ -510,11 +510,11 @@ document.addEventListener('keydown',e=>{
 <script>
 function doLogout(){
   if(confirm('Keluar dari sesi ini?')){
-    localStorage.removeItem('bsi_auth');
-    localStorage.removeItem('bsi_role');
-    localStorage.removeItem('bsi_group');
-    localStorage.removeItem('bsi_gname');
-    localStorage.removeItem('bsi_label');
+    sessionStorage.removeItem('bsi_auth');
+    sessionStorage.removeItem('bsi_role');
+    sessionStorage.removeItem('bsi_group');
+    sessionStorage.removeItem('bsi_gname');
+    sessionStorage.removeItem('bsi_label');
     location.href='index.html?logout=1';
   }
 }

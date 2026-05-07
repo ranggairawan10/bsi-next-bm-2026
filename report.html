@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
+<meta name="theme-color" content="#00A39D">
+<title>Report Generator · BSI Next BM School 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+
+<style>
+:root {
+  --teal: #00A39D;
+  --teal-dark: #007E79;
+  --teal-10: rgba(0,163,157,0.10);
+  --teal-20: rgba(0,163,157,0.20);
+  --gold: #F8AD3C;
+  --gold-dark: #D88A20;
+  --cream: #F6F3EE;
+  --white: #FFFFFF;
+  --text: #1A2332;
+  --mid: #4A5568;
+  --soft: #9AA5B4;
+  --border: #E2DED8;
+  --in-bg: #F9F8F5;
+  --success: #2F9E66;
+  --warn: #E89B2A;
+  --danger: #E53E3E;
+  --shadow-sm: 0 2px 4px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.08);
+  --shadow-lg: 0 16px 48px rgba(0,0,0,.10);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { min-height: 100vh; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; background: var(--cream); color: var(--text); -webkit-font-smoothing: antialiased; }
+button { font-family: inherit; }
+
+.toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); padding: 12px 22px; background: var(--text); color: #fff; border-radius: 10px; font-size: 13px; font-weight: 600; box-shadow: var(--shadow-lg); opacity: 0; transition: opacity .25s, transform .25s; z-index: 9999; pointer-events: none; max-width: 90%; text-align: center; }
+.toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast-success { background: var(--success); }
+.toast-warn { background: var(--warn); }
+.toast-error { background: var(--danger); }
+
+.btn { background: var(--teal); border: none; border-radius: 10px; padding: 11px 18px; font-size: 13px; font-weight: 700; color: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 7px; box-shadow: 0 4px 14px rgba(0,163,157,.28); transition: transform .15s, box-shadow .15s, background .15s; }
+.btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,163,157,.36); background: var(--teal-dark); }
+.btn:active:not(:disabled) { transform: translateY(0); }
+.btn:disabled { opacity: .35; cursor: not-allowed; }
+.btn-gold { background: var(--gold); box-shadow: 0 4px 14px rgba(248,173,60,.32); }
+.btn-gold:hover:not(:disabled) { background: var(--gold-dark); box-shadow: 0 8px 22px rgba(248,173,60,.42); }
+.btn-ghost { background: transparent; color: var(--text); border: 1.5px solid var(--border); box-shadow: none; }
+.btn-ghost:hover:not(:disabled) { background: var(--in-bg); border-color: var(--teal); color: var(--teal); }
+.btn-danger { background: var(--danger); box-shadow: 0 4px 14px rgba(229,62,62,.28); }
+.btn-sm { padding: 7px 12px; font-size: 12px; }
+.btn-lg { padding: 14px 22px; font-size: 14px; }
+.btn-block { width: 100%; }
+
+.logo-row { display: flex; align-items: center; justify-content: center; gap: 18px; padding: 10px 18px; background: var(--cream); border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 22px; }
+.logo-dan, .logo-bsi { height: 26px; width: auto; object-fit: contain; }
+.logo-bsi { height: 32px; }
+.logo-div { width: 1px; height: 30px; background: var(--border); }
+
+.shell { max-width: 1400px; margin: 0 auto; padding: 22px 18px 60px; }
+.head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
+.head-left h1 { font-size: 22px; font-weight: 800; letter-spacing: -.4px; color: var(--text); }
+.head-left p { font-size: 12px; color: var(--mid); margin-top: 2px; font-weight: 600; }
+.head-badge { background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color: #fff; padding: 8px 14px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; box-shadow: 0 4px 14px rgba(248,173,60,.3); }
+
+.tabs { display: flex; gap: 4px; background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 5px; margin-bottom: 22px; box-shadow: var(--shadow-sm); overflow-x: auto; }
+.tab { flex: 1; min-width: 130px; padding: 11px 14px; border: none; background: transparent; border-radius: 10px; font-size: 12.5px; font-weight: 700; color: var(--mid); cursor: pointer; transition: all .2s; white-space: nowrap; }
+.tab:hover { background: var(--in-bg); color: var(--text); }
+.tab.active { background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color: #fff; box-shadow: 0 4px 12px rgba(248,173,60,.32); }
+
+.panel { display: none; }
+.panel.active { display: block; }
+
+.card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 22px; box-shadow: var(--shadow-sm); margin-bottom: 18px; }
+.card-h { font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.card-h .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); }
+.card-sub { font-size: 12px; color: var(--mid); font-weight: 500; line-height: 1.55; margin-bottom: 14px; }
+
+/* Upload zone */
+.upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.upload-cell { background: var(--in-bg); border: 2px dashed var(--border); border-radius: var(--radius-sm); padding: 22px; text-align: center; transition: border-color .2s; cursor: pointer; }
+.upload-cell:hover, .upload-cell.drag { border-color: var(--gold); background: rgba(248,173,60,.05); }
+.upload-cell h4 { font-size: 13px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+.upload-cell p { font-size: 11.5px; color: var(--mid); margin-bottom: 10px; }
+.upload-cell .filename { font-size: 12px; color: var(--success); font-weight: 700; margin-top: 8px; word-break: break-all; }
+.upload-cell input[type=file] { display: none; }
+.upload-cell .upload-btn { display: inline-block; padding: 9px 16px; background: var(--gold); color: #fff; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer; }
+.upload-cell .upload-btn:hover { background: var(--gold-dark); }
+
+/* Score formula card */
+.formula { background: linear-gradient(135deg, rgba(0,163,157,.06), rgba(248,173,60,.06)); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text); text-align: center; line-height: 1.7; }
+.formula b { color: var(--teal-dark); }
+.formula .gold { color: var(--gold-dark); }
+
+/* CPI Summary table */
+.cpi-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.cpi-table th { text-align: left; padding: 10px 11px; font-size: 10.5px; font-weight: 800; color: var(--soft); text-transform: uppercase; letter-spacing: .8px; border-bottom: 2px solid var(--border); background: var(--in-bg); position: sticky; top: 0; }
+.cpi-table td { padding: 10px 11px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.cpi-table td.name { font-weight: 700; color: var(--text); }
+.cpi-table td.gname { font-weight: 600; color: var(--teal-dark); font-size: 11.5px; }
+.cpi-table td.score { font-weight: 700; text-align: center; }
+.cpi-table td.cpi { font-weight: 800; text-align: center; font-size: 14px; }
+.cpi-table td.predikat { text-align: center; font-weight: 800; }
+.cpi-table .pA { color: #2F9E66; }
+.cpi-table .pB { color: #00A39D; }
+.cpi-table .pC { color: #F8AD3C; }
+.cpi-table .pD { color: #E53E3E; }
+.cpi-table tr:hover td { background: rgba(248,173,60,.04); }
+.cpi-table td.lulus { font-weight: 800; }
+.cpi-table td.lulus.yes { color: var(--success); }
+.cpi-table td.lulus.no { color: var(--danger); }
+.cpi-table .btnView { padding: 5px 10px; font-size: 11px; font-weight: 700; background: var(--text); color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+.cpi-table .btnView:hover { background: var(--teal); }
+
+/* Filter row */
+.filter-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+.filter-row select, .filter-row input { padding: 9px 11px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 12.5px; font-weight: 600; font-family: inherit; background: var(--white); }
+.filter-row select:focus, .filter-row input:focus { border-color: var(--gold); outline: none; }
+.filter-row .stats { margin-left: auto; font-size: 12px; color: var(--mid); font-weight: 600; }
+.filter-row .stats b { color: var(--text); font-weight: 800; }
+
+/* INDIVIDUAL REPORT CARD (printable) */
+.report-page { 
+  width: 100%; 
+  max-width: 800px; 
+  margin: 0 auto 24px; 
+  background: var(--white); 
+  border: 1px solid var(--border); 
+  border-radius: var(--radius-md); 
+  position: relative; 
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  page-break-after: always;
+}
+.report-bg {
+  position: absolute; inset: 0; 
+  background-image: url('assets/images/bg-report-cpi.jpg');
+  background-size: cover; background-position: center;
+  opacity: 0.10; z-index: 0; pointer-events: none;
+}
+.report-bg-fallback {
+  position: absolute; inset: 0; 
+  background: 
+    radial-gradient(circle at 0% 0%, rgba(0,163,157,.10) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(248,173,60,.10) 0%, transparent 50%),
+    repeating-linear-gradient(45deg, transparent 0 20px, rgba(0,163,157,.02) 20px 21px);
+  z-index: 0; pointer-events: none;
+}
+.report-content { position: relative; z-index: 1; padding: 32px 36px; }
+
+.report-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 18px; border-bottom: 2px solid var(--teal); margin-bottom: 22px; }
+.report-head .logos { display: flex; align-items: center; gap: 14px; }
+.report-head .logos img { height: 28px; width: auto; }
+.report-head .logos .div { width: 1px; height: 26px; background: var(--border); }
+.report-head .meta { text-align: right; font-size: 10.5px; color: var(--mid); font-weight: 600; line-height: 1.6; }
+.report-head .meta b { color: var(--text); font-size: 12px; display: block; margin-bottom: 2px; font-weight: 800; }
+
+.report-title { text-align: center; margin-bottom: 22px; }
+.report-title .pre { font-size: 11px; font-weight: 700; color: var(--soft); letter-spacing: 2px; text-transform: uppercase; }
+.report-title h2 { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -.5px; margin-top: 4px; }
+.report-title .sub { font-size: 12px; color: var(--teal-dark); font-weight: 700; margin-top: 4px; }
+
+.identity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px; }
+.identity-cell { background: rgba(255,255,255,.65); backdrop-filter: blur(8px); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.identity-cell label { font-size: 9.5px; font-weight: 800; color: var(--soft); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px; }
+.identity-cell .val { font-size: 14px; font-weight: 700; color: var(--text); }
+
+/* CPI Score Block */
+.cpi-block { 
+  background: linear-gradient(135deg, rgba(0,163,157,.08), rgba(248,173,60,.10)); 
+  border: 2px solid var(--teal); 
+  border-radius: 14px; 
+  padding: 22px; 
+  margin-bottom: 22px;
+}
+.cpi-grid { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 14px; align-items: center; }
+.cpi-comp { background: rgba(255,255,255,.85); border-radius: 10px; padding: 12px 14px; text-align: center; }
+.cpi-comp label { display: block; font-size: 10px; font-weight: 800; color: var(--soft); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.cpi-comp .num { font-size: 26px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1; }
+.cpi-comp .lbl { font-size: 10.5px; font-weight: 700; color: var(--mid); margin-top: 4px; }
+.cpi-comp .idx { font-size: 11px; color: var(--teal-dark); font-weight: 700; margin-top: 2px; }
+.cpi-final { background: var(--text); color: #fff; border-radius: 10px; padding: 14px; text-align: center; }
+.cpi-final label { font-size: 10.5px; font-weight: 800; color: var(--gold); text-transform: uppercase; letter-spacing: 1.2px; }
+.cpi-final .big { font-size: 44px; font-weight: 800; line-height: 1; margin: 6px 0; font-variant-numeric: tabular-nums; }
+.cpi-final .pred { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: 1px; background: var(--gold); color: var(--text); margin-top: 4px; }
+.cpi-final .status { font-size: 11px; font-weight: 800; margin-top: 6px; letter-spacing: 1.5px; }
+.cpi-final .status.lulus { color: var(--success); }
+.cpi-final .status.belum { color: #FFB4B4; }
+
+/* Behavior 6D bars */
+.behavior-block { margin-bottom: 22px; }
+.behavior-h { font-size: 13px; font-weight: 800; color: var(--text); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.behavior-bars { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 22px; }
+.bbar-row { display: flex; align-items: center; gap: 10px; font-size: 11.5px; }
+.bbar-row .lbl { width: 100px; font-weight: 700; color: var(--text); flex-shrink: 0; }
+.bbar-row .lbl small { color: var(--mid); font-weight: 600; }
+.bbar-row .track { flex: 1; height: 12px; background: var(--in-bg); border-radius: 6px; overflow: hidden; position: relative; }
+.bbar-row .fill { height: 100%; border-radius: 6px; transition: width .4s; }
+.bbar-row .num { width: 36px; font-weight: 800; color: var(--text); text-align: right; font-variant-numeric: tabular-nums; }
+
+/* BPM rounds table */
+.rounds-block { margin-bottom: 22px; }
+.rounds-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+.rounds-table th { text-align: left; padding: 8px 10px; font-size: 10px; font-weight: 800; color: var(--soft); text-transform: uppercase; letter-spacing: .8px; border-bottom: 1.5px solid var(--border); background: rgba(255,255,255,.5); }
+.rounds-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.rounds-table td.rname { font-weight: 700; color: var(--teal-dark); }
+
+/* Coach narrative */
+.narr-block { margin-bottom: 22px; }
+.narr-row { background: rgba(255,255,255,.65); border-left: 3px solid var(--gold); padding: 10px 14px; margin-bottom: 8px; border-radius: 0 8px 8px 0; }
+.narr-row .rh { font-size: 11px; font-weight: 800; color: var(--gold-dark); margin-bottom: 4px; }
+.narr-row p { font-size: 11.5px; color: var(--text); line-height: 1.55; font-style: italic; }
+.narr-row p.empty { color: var(--soft); font-style: italic; }
+
+.report-footer { padding-top: 14px; border-top: 1px dashed var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--soft); font-weight: 600; }
+
+/* Print mode */
+@media print {
+  body { background: #fff !important; }
+  .shell { padding: 0 !important; max-width: 100% !important; }
+  .head, .tabs, .filter-row, .actions-row, .non-print, .toast { display: none !important; }
+  .panel { display: block !important; }
+  .panel:not(.active) { display: none !important; }
+  .card { box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; background: transparent !important; }
+  .card-h, .card-sub { display: none !important; }
+  .report-page { box-shadow: none !important; border: none !important; max-width: 100% !important; margin: 0 !important; border-radius: 0 !important; page-break-after: always; }
+  .report-content { padding: 24px 28px !important; }
+  @page { size: A4 portrait; margin: 12mm; }
+}
+
+/* Empty state */
+.empty-state { padding: 50px 20px; text-align: center; color: var(--soft); }
+.empty-state .ico { font-size: 36px; opacity: .35; margin-bottom: 10px; font-weight: 200; }
+.empty-state p { font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--mid); }
+.empty-state small { font-size: 11.5px; color: var(--soft); }
+
+footer { text-align: center; font-size: 11px; color: var(--soft); margin-top: 28px; padding-top: 16px; border-top: 1px dashed var(--border); }
+
+@media (max-width: 800px) {
+  .upload-grid, .identity-grid, .behavior-bars { grid-template-columns: 1fr; }
+  .cpi-grid { grid-template-columns: 1fr; }
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+<div class="shell non-print">
+  
+<div class="logo-row">
+  <img class="logo-dan" src="assets/images/danantara.png" alt="Danantara" onerror="this.style.display='none'">
+  <span class="logo-div"></span>
+  <img class="logo-bsi" src="assets/images/bsi.png" alt="BSI" onerror="this.style.display='none'">
+</div>
+
+
+  <div class="head">
+    <div class="head-left">
+      <h1>Report Generator · CPI Architecture</h1>
+      <p>Cumulative Performance Index Opsi A · BSI Next BM School 2026</p>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <span class="head-badge">REPORT MODE</span>
+      <button class="btn btn-ghost btn-sm" id="btnLogout">Keluar</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="upload">Import L2 Excel</button>
+    <button class="tab" data-tab="cpi">CPI Calculation</button>
+    <button class="tab" data-tab="individu">Report Individual</button>
+    <button class="tab" data-tab="export">Export &amp; Print</button>
+  </div>
+
+  <!-- PANEL: UPLOAD -->
+  <div class="panel active" id="panel-upload">
+    <div class="card">
+      <div class="card-h"><span class="dot"></span>Arsitektur CPI Opsi A</div>
+      <div class="formula">
+        <b>CPI</b> = (Indeks_POST × <b>2</b> + Indeks_SIM × <b>16</b>) / <b>18</b><br>
+        <span style="font-size:11px;color:var(--mid);">L2 POST 2 jam · L3 SIM 16 jam · Target ≥ <span class="gold">3.00 LULUS</span></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h"><span class="dot"></span>Upload File Excel BSI</div>
+      <div class="card-sub">Format yang diterima: kolom <b>Nama</b> (wajib, harus sama dengan daftar anggota di Master Admin), <b>Kelompok</b> (opsional), <b>Score</b> atau <b>Nilai</b> (0-100). Mendukung .xlsx, .xls, .csv.</div>
+      <div class="upload-grid">
+        <div class="upload-cell" id="uploadPost">
+          <h4>L2 Post-Test (WAJIB)</h4>
+          <p>Nilai Bank Soal Post-Test · masuk ke perhitungan CPI</p>
+          <span class="upload-btn">Pilih File</span>
+          <input type="file" id="filePost" accept=".xlsx,.xls,.csv">
+          <div class="filename"></div>
+        </div>
+        <div class="upload-cell" id="uploadPre">
+          <h4>L2 Pre-Test (Opsional)</h4>
+          <p>Nilai Bank Soal Pre-Test · untuk Learning Gain saja</p>
+          <span class="upload-btn">Pilih File</span>
+          <input type="file" id="filePre" accept=".xlsx,.xls,.csv">
+          <div class="filename"></div>
+        </div>
+      </div>
+      <div style="margin-top:14px;font-size:11.5px;color:var(--mid);line-height:1.55;">
+        <b>Catatan:</b> nilai akan dicocokkan dengan daftar anggota di Master Admin berdasarkan nama (case-insensitive, abaikan tanda baca). Jika nama tidak cocok, baris akan dilewati. Pastikan daftar anggota sudah diisi sebelum import.
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL: CPI CALCULATION -->
+  <div class="panel" id="panel-cpi">
+    <div class="card">
+      <div class="card-h"><span class="dot"></span>Tabel CPI Per Peserta</div>
+      <div class="filter-row">
+        <select id="filterGroup">
+          <option value="all">Semua Kelompok</option>
+          <option value="1">Borobudur</option>
+          <option value="2">Prambanan</option>
+          <option value="3">Diponegoro</option>
+          <option value="4">Gajah Mada</option>
+          <option value="5">Majapahit</option>
+        </select>
+        <select id="filterStatus">
+          <option value="all">Semua Status</option>
+          <option value="lulus">LULUS</option>
+          <option value="belum">BELUM LULUS</option>
+        </select>
+        <input type="text" id="filterName" placeholder="Cari nama..." style="flex:1;min-width:180px;">
+        <div class="stats">
+          Total <b id="statsTotal">0</b> · Lulus <b id="statsPass" style="color:var(--success);">0</b> · Belum <b id="statsBelum" style="color:var(--danger);">0</b> · Rate <b id="statsRate">0%</b>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="cpi-table">
+          <thead>
+            <tr>
+              <th>Nama</th><th>Kelompok</th>
+              <th>L2 POST</th><th>Pred</th>
+              <th>L3 SIM</th><th>Pred</th>
+              <th>CPI</th><th>Pred</th>
+              <th>Status</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="cpiBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL: INDIVIDU -->
+  <div class="panel" id="panel-individu">
+    <div class="card non-print">
+      <div class="card-h"><span class="dot"></span>Report Individual</div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <select id="individuSelect" style="flex:1;min-width:240px;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--white);font-weight:600;">
+          <option value="">— Pilih Peserta —</option>
+        </select>
+        <button class="btn" id="btnPrint">Cetak / Save PDF</button>
+      </div>
+    </div>
+    <div id="reportArea">
+      <div class="empty-state non-print"><div class="ico">📄</div><p>Pilih peserta dari dropdown di atas</p><small>Atau klik tombol Lihat Report di tab CPI Calculation</small></div>
+    </div>
+  </div>
+
+  <!-- PANEL: EXPORT -->
+  <div class="panel" id="panel-export">
+    <div class="card">
+      <div class="card-h"><span class="dot"></span>Export Massal</div>
+      <div class="card-sub">CSV untuk arsip Excel · Print Semua untuk membuka dialog cetak dengan seluruh peserta sebagai PDF batch (gunakan Save as PDF di dialog Print).</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn" id="btnExportCSV">Unduh CSV</button>
+        <button class="btn btn-gold" id="btnPrintAll">Print Semua Report (PDF Batch)</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h"><span class="dot"></span>Tips Cetak Optimal</div>
+      <div class="card-sub" style="line-height:1.7;">
+        · Buka dialog Print (Ctrl+P / Cmd+P)<br>
+        · Pilih destination <b>Save as PDF</b><br>
+        · Layout: <b>Portrait</b> · Paper size: <b>A4</b> · Margins: <b>Default</b><br>
+        · Centang <b>Background graphics</b> agar warna dan background image tercetak<br>
+        · Untuk batch, gunakan Print Semua Report lalu pilih Save as PDF · setiap peserta akan menjadi 1 halaman terpisah
+      </div>
+    </div>
+  </div>
+
+  <footer>BSI Corporate University Group · Branch Banking Simulation 2026 · HCR.ID</footer>
+</div>
+
+<script>
+
+
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBwc9qm9tuoBK7ba2E7k8IY3bjlXTNRoUc",
+  authDomain: "bsi-next-bm-2026.firebaseapp.com",
+  databaseURL: "https://bsi-next-bm-2026-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "bsi-next-bm-2026",
+  storageBucket: "bsi-next-bm-2026.firebasestorage.app",
+  messagingSenderId: "685360057111",
+  appId: "1:685360057111:web:3f2c3fe05b5054727e0552"
+};
+
+const ACCESS_MAP = {
+  'BSI2026ADMIN':  { role: 'admin',     page: 'admin.html',      label: 'Master Admin' },
+  'BSI2026GM':     { role: 'gm',        page: 'gamemaster.html', label: 'Game Master' },
+  'BSI2026LAYAR':  { role: 'projector', page: 'projector.html',  label: 'Layar Proyektor' },
+  'BSI2026BOARD':  { role: 'board',     page: 'board.html',      label: 'Visual Board' },
+  'BSI2026REPORT': { role: 'report',    page: 'report.html',     label: 'Report Generator' },
+  'COACH2026G1':   { role: 'coach',     page: 'coach.html',      label: 'Branch Coach Borobudur',  group: 1, gname: 'Cabang Borobudur' },
+  'COACH2026G2':   { role: 'coach',     page: 'coach.html',      label: 'Branch Coach Prambanan',  group: 2, gname: 'Cabang Prambanan' },
+  'COACH2026G3':   { role: 'coach',     page: 'coach.html',      label: 'Branch Coach Diponegoro', group: 3, gname: 'Cabang Diponegoro' },
+  'COACH2026G4':   { role: 'coach',     page: 'coach.html',      label: 'Branch Coach Gajah Mada', group: 4, gname: 'Cabang Gajah Mada' },
+  'COACH2026G5':   { role: 'coach',     page: 'coach.html',      label: 'Branch Coach Majapahit',  group: 5, gname: 'Cabang Majapahit' },
+  'LEADER2026G1':  { role: 'leader',    page: 'leader.html',     label: 'Group Leader Borobudur',  group: 1, gname: 'Cabang Borobudur' },
+  'LEADER2026G2':  { role: 'leader',    page: 'leader.html',     label: 'Group Leader Prambanan',  group: 2, gname: 'Cabang Prambanan' },
+  'LEADER2026G3':  { role: 'leader',    page: 'leader.html',     label: 'Group Leader Diponegoro', group: 3, gname: 'Cabang Diponegoro' },
+  'LEADER2026G4':  { role: 'leader',    page: 'leader.html',     label: 'Group Leader Gajah Mada', group: 4, gname: 'Cabang Gajah Mada' },
+  'LEADER2026G5':  { role: 'leader',    page: 'leader.html',     label: 'Group Leader Majapahit',  group: 5, gname: 'Cabang Majapahit' }
+};
+
+const GROUP_NAMES = {
+  1: 'Cabang Borobudur',
+  2: 'Cabang Prambanan',
+  3: 'Cabang Diponegoro',
+  4: 'Cabang Gajah Mada',
+  5: 'Cabang Majapahit'
+};
+
+const AMANAH_PER_ROUND = { 1: 50, 2: 65, 3: 80, 4: 100 };
+const ROUND_TITLES = {
+  1: 'R1 · Selisih Kas Pak Bagus (Operasional)',
+  2: 'R2 · Pondok Pesantren Rp 4M (Pembiayaan)',
+  3: 'R3 · Restruktur Konflik (Leadership)',
+  4: 'R4 · Crisis Compliance (Capstone)'
+};
+
+const BEHAVIOR_DIMENSIONS = [
+  { key: 'qoa', short: 'QoA', label: 'Quality of Argument',  weight: 0.25, color: '#00A39D' },
+  { key: 'al',  short: 'AL',  label: 'Active Listening',      weight: 0.15, color: '#0E8A85' },
+  { key: 'sa',  short: 'SA',  label: 'Sharia Awareness',      weight: 0.15, color: '#F8AD3C' },
+  { key: 'rc',  short: 'RC',  label: 'Risk Calibration',      weight: 0.15, color: '#D88A20' },
+  { key: 'ej',  short: 'EJ',  label: 'Ethical Judgment',      weight: 0.15, color: '#7C5295' },
+  { key: 'pi',  short: 'PI',  label: 'Practical Implementation', weight: 0.15, color: '#3B5998' }
+];
+
+const PATHS = {
+  bpmGM:        (r, g) => `bpm_gm/r${r}/g${g}`,
+  bpmGMRound:   (r)    => `bpm_gm/r${r}`,
+  bpmLeader:    (r, fromG, toG) => `bpm_leader/r${r}/from_g${fromG}/to_g${toG}`,
+  bpmLeaderRoot: ()    => `bpm_leader`,
+  coachData:    (g, r) => `coach_data/g${g}/r${r}`,
+  coachRoot:    ()     => `coach_data`,
+  amanah:       (r, g) => `amanah_coins/r${r}/g${g}`,
+  amanahRoot:   ()     => `amanah_coins`,
+  session:      ()     => `session`,
+  sessionRound: ()     => `session/currentRound`,
+  sessionLocked: ()    => `session/locked`,
+  groups:       ()     => `groups`,
+  groupMembers: (g)    => `groups/g${g}/members`,
+  l2Scores:     ()     => `l2_scores`,
+  l2Member:     (g, m) => `l2_scores/g${g}/${m}`,
+  preTest:      (g, m) => `pre_test/g${g}/${m}`,
+  customAmanah: (r, g) => `custom_amanah/r${r}/g${g}`
+};
+
+function toast(msg, type) {
+  type = type || 'info';
+  const t = document.createElement('div');
+  t.className = 'toast toast-' + type;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.classList.add('on'), 10);
+  setTimeout(() => {
+    t.classList.remove('on');
+    setTimeout(() => t.remove(), 300);
+  }, 2800);
+}
+function fmtScore(n, decimals) {
+  decimals = decimals == null ? 2 : decimals;
+  if (n == null || isNaN(n)) return '0' + (decimals > 0 ? '.' + '0'.repeat(decimals) : '');
+  return Number(n).toFixed(decimals);
+}
+function predikatFromScore(score) {
+  if (score >= 90) return { code: 'A', label: 'Sangat Kompeten', idx: 4, color: '#2F9E66' };
+  if (score >= 80) return { code: 'B', label: 'Kompeten',          idx: 3, color: '#00A39D' };
+  if (score >= 70) return { code: 'C', label: 'Cukup Kompeten',    idx: 2, color: '#F8AD3C' };
+  return                  { code: 'D', label: 'Belum Kompeten',     idx: 1, color: '#E53E3E' };
+}
+function escapeHTML(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+(function authGuard() {
+  const auth = localStorage.getItem('bsi_auth');
+  const role = localStorage.getItem('bsi_role');
+  if (!auth || role !== 'report') {
+    window.location.replace('index.html');
+  }
+})();
+
+
+firebase.initializeApp(FIREBASE_CONFIG);
+const db = firebase.database();
+
+let state = {
+  members: {1:[], 2:[], 3:[], 4:[], 5:[]},
+  bpmGM: {1:{}, 2:{}, 3:{}, 4:{}},
+  bpmLeader: {},
+  coachData: {},
+  l2Scores: {},
+  preTest: {},
+  computed: []
+};
+
+// =========================================================
+// TAB SWITCHING
+// =========================================================
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab === 'cpi' || btn.dataset.tab === 'individu') compute();
+  });
+});
+
+// =========================================================
+// LOAD DATA REAL-TIME
+// =========================================================
+db.ref(PATHS.groups()).on('value', s => {
+  const v = s.val() || {};
+  for (let g = 1; g <= 5; g++) state.members[g] = (v['g' + g] && v['g' + g].members) || [];
+  compute();
+});
+for (let r = 1; r <= 4; r++) {
+  db.ref(PATHS.bpmGMRound(r)).on('value', s => { state.bpmGM[r] = s.val() || {}; compute(); });
+}
+db.ref(PATHS.bpmLeaderRoot()).on('value', s => { state.bpmLeader = s.val() || {}; compute(); });
+db.ref(PATHS.coachRoot()).on('value', s => { state.coachData = s.val() || {}; compute(); });
+db.ref(PATHS.l2Scores()).on('value', s => { state.l2Scores = s.val() || {}; compute(); });
+db.ref('pre_test').on('value', s => { state.preTest = s.val() || {}; compute(); });
+
+// =========================================================
+// CORE COMPUTATION (LOCKED CPI Opsi A)
+// =========================================================
+function memberKey(g, idx) { return 'g' + g + '_m' + (idx + 1); }
+
+function compute() {
+  const out = [];
+  for (let g = 1; g <= 5; g++) {
+    const members = state.members[g] || [];
+    for (let i = 0; i < 6; i++) {
+      const name = members[i] || '';
+      if (!name) continue;
+      const mkey = memberKey(g, i);
+
+      // ===== L3 SIM derivation =====
+      let totalCombined = 0, totalBehavior = 0, roundsCounted = 0;
+      const perRound = [];
+
+      for (let r = 1; r <= 4; r++) {
+        const gmScore = (state.bpmGM[r] && state.bpmGM[r]['g' + g]) || 0;
+        let leaderSum = 0, leaderCount = 0;
+        if (state.bpmLeader && state.bpmLeader['r' + r]) {
+          const round = state.bpmLeader['r' + r];
+          Object.keys(round).forEach(fromKey => {
+            const fromObj = round[fromKey] || {};
+            if (fromObj['to_g' + g] && typeof fromObj['to_g' + g].score === 'number') {
+              leaderSum += fromObj['to_g' + g].score;
+              leaderCount++;
+            }
+          });
+        }
+        const leaderAvg = leaderCount > 0 ? leaderSum / leaderCount : 0;
+        const combined = (gmScore + leaderAvg) / 2;
+
+        // BPM normalization: -10 to +10 → 0 to 100
+        const bpmNorm = ((combined + 10) / 20) * 100;
+
+        // Behavior 6D from coach_data/g{G}/r{R}/m{M+1}
+        const cMember = state.coachData &&
+                        state.coachData['g' + g] &&
+                        state.coachData['g' + g]['r' + r] &&
+                        state.coachData['g' + g]['r' + r]['m' + (i + 1)];
+        let beh = 0, behHas = false;
+        if (cMember) {
+          let weighted = 0, hasAll = true;
+          BEHAVIOR_DIMENSIONS.forEach(d => {
+            const v = cMember[d.key];
+            if (typeof v !== 'number') hasAll = false;
+            else weighted += v * d.weight;
+          });
+          if (hasAll) {
+            // weighted is on 1-5 scale → normalize to 0-100
+            beh = ((weighted - 1) / 4) * 100;
+            behHas = true;
+          }
+        }
+
+        const l3Round = behHas
+          ? (bpmNorm * 0.30 + beh * 0.70)
+          : bpmNorm; // jika behavior belum diisi, fallback BPM only
+
+        if (behHas || gmScore !== 0 || leaderCount > 0) {
+          totalCombined += bpmNorm;
+          totalBehavior += beh;
+          roundsCounted++;
+        }
+
+        perRound.push({
+          r: r, gm: gmScore, leaderAvg, combined, bpmNorm,
+          beh, behHas, l3Round, coachMember: cMember || null
+        });
+      }
+
+      const l3SIM = roundsCounted > 0
+        ? perRound.reduce((a, x) => a + x.l3Round, 0) / 4
+        : 0;
+      const predSIM = predikatFromScore(l3SIM);
+
+      // ===== L2 POST =====
+      const l2Member = state.l2Scores && state.l2Scores['g' + g] && state.l2Scores['g' + g][mkey];
+      const l2POST = (l2Member && typeof l2Member.post === 'number') ? l2Member.post : 0;
+      const predPOST = predikatFromScore(l2POST);
+      const hasL2 = l2Member && typeof l2Member.post === 'number';
+
+      // ===== Pre-Test (informatif) =====
+      const preMember = state.preTest && state.preTest['g' + g] && state.preTest['g' + g][mkey];
+      const l2PRE = (preMember && typeof preMember.pre === 'number') ? preMember.pre : null;
+      const learningGain = (l2PRE !== null && hasL2) ? (l2POST - l2PRE) : null;
+
+      // ===== CPI Opsi A =====
+      const idxPOST = predPOST.idx;
+      const idxSIM = predSIM.idx;
+      const cpi = (idxPOST * 2 + idxSIM * 16) / 18;
+      const lulus = cpi >= 3.00;
+
+      // Final predikat from CPI value (using same scale: A>=3.5, B>=2.5, C>=1.5, D<1.5)
+      let cpiPred;
+      if (cpi >= 3.5) cpiPred = { code: 'A', label: 'Sangat Kompeten', color: '#2F9E66' };
+      else if (cpi >= 2.5) cpiPred = { code: 'B', label: 'Kompeten', color: '#00A39D' };
+      else if (cpi >= 1.5) cpiPred = { code: 'C', label: 'Cukup Kompeten', color: '#F8AD3C' };
+      else cpiPred = { code: 'D', label: 'Belum Kompeten', color: '#E53E3E' };
+
+      out.push({
+        g, mIdx: i, mkey, name, gname: GROUP_NAMES[g],
+        l2POST, predPOST, hasL2,
+        l2PRE, learningGain,
+        l3SIM, predSIM, perRound,
+        idxPOST, idxSIM, cpi, lulus, cpiPred,
+        roundsCounted
+      });
+    }
+  }
+  state.computed = out;
+  renderCPITable();
+  renderIndividual();
+}
+
+// =========================================================
+// CPI TABLE
+// =========================================================
+function renderCPITable() {
+  const tbody = document.getElementById('cpiBody');
+  if (!tbody) return;
+  const filterG = document.getElementById('filterGroup').value;
+  const filterStatus = document.getElementById('filterStatus').value;
+  const filterText = (document.getElementById('filterName').value || '').toLowerCase();
+  
+  let rows = '';
+  let pass = 0, total = 0;
+  const filtered = state.computed.filter(r => {
+    if (filterG !== 'all' && String(r.g) !== filterG) return false;
+    if (filterStatus === 'lulus' && !r.lulus) return false;
+    if (filterStatus === 'belum' && r.lulus) return false;
+    if (filterText && !r.name.toLowerCase().includes(filterText)) return false;
+    return true;
+  });
+  
+  filtered.forEach(r => {
+    total++;
+    if (r.lulus) pass++;
+    const rowsHTML = `<tr data-mkey="${r.mkey}">
+      <td class="name">${escapeHTML(r.name)}</td>
+      <td class="gname">${escapeHTML(r.gname)}</td>
+      <td class="score">${r.hasL2 ? fmtScore(r.l2POST, 1) : '<span style="color:var(--soft);">-</span>'}</td>
+      <td class="predikat p${r.predPOST.code}">${r.hasL2 ? r.predPOST.code : '-'}</td>
+      <td class="score">${fmtScore(r.l3SIM, 1)}</td>
+      <td class="predikat p${r.predSIM.code}">${r.predSIM.code}</td>
+      <td class="cpi" style="color: ${r.cpiPred.color};">${fmtScore(r.cpi, 2)}</td>
+      <td class="predikat p${r.cpiPred.code}">${r.cpiPred.code}</td>
+      <td class="lulus ${r.lulus ? 'yes' : 'no'}">${r.lulus ? 'LULUS' : 'BELUM'}</td>
+      <td><button class="btnView" data-mkey="${r.mkey}">Lihat Report</button></td>
+    </tr>`;
+    rows += rowsHTML;
+  });
+  
+  if (rows === '') {
+    rows = '<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--soft);font-size:12px;">Tidak ada data yang cocok dengan filter. Pastikan daftar anggota sudah diisi di Master Admin dan Excel L2 sudah diunggah.</td></tr>';
+  }
+  tbody.innerHTML = rows;
+
+  document.getElementById('statsTotal').textContent = total;
+  document.getElementById('statsPass').textContent = pass;
+  document.getElementById('statsBelum').textContent = total - pass;
+  document.getElementById('statsRate').textContent = total > 0 ? Math.round(pass / total * 100) + '%' : '0%';
+
+  tbody.querySelectorAll('.btnView').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelector('[data-tab="individu"]').click();
+      setTimeout(() => {
+        document.getElementById('individuSelect').value = b.dataset.mkey;
+        renderIndividual();
+        document.getElementById('reportArea').scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    });
+  });
+}
+
+document.getElementById('filterGroup').addEventListener('change', renderCPITable);
+document.getElementById('filterStatus').addEventListener('change', renderCPITable);
+document.getElementById('filterName').addEventListener('input', renderCPITable);
+
+// =========================================================
+// INDIVIDUAL REPORT
+// =========================================================
+function renderIndividual() {
+  const sel = document.getElementById('individuSelect');
+  if (!sel) return;
+  
+  // Refresh dropdown
+  const prevVal = sel.value;
+  let opts = '<option value="">— Pilih Peserta —</option>';
+  state.computed.forEach(r => {
+    opts += `<option value="${r.mkey}">${escapeHTML(r.name)} · ${escapeHTML(r.gname)}</option>`;
+  });
+  sel.innerHTML = opts;
+  if (prevVal && state.computed.find(r => r.mkey === prevVal)) sel.value = prevVal;
+
+  const area = document.getElementById('reportArea');
+  const mkey = sel.value;
+  if (!mkey) {
+    area.innerHTML = '<div class="empty-state"><div class="ico">📄</div><p>Pilih peserta dari dropdown di atas</p><small>Atau klik tombol Lihat Report di tab CPI Calculation</small></div>';
+    return;
+  }
+  const r = state.computed.find(x => x.mkey === mkey);
+  if (!r) { area.innerHTML = '<div class="empty-state"><p>Peserta tidak ditemukan</p></div>'; return; }
+  
+  area.innerHTML = renderReportPage(r);
+}
+
+document.addEventListener('change', e => {
+  if (e.target && e.target.id === 'individuSelect') renderIndividual();
+});
+
+function renderReportPage(r) {
+  const dateStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+  
+  // Aggregate behavior 6D across rounds (avg)
+  const agg6D = {};
+  BEHAVIOR_DIMENSIONS.forEach(d => agg6D[d.key] = { sum: 0, count: 0 });
+  r.perRound.forEach(rd => {
+    if (rd.coachMember) {
+      BEHAVIOR_DIMENSIONS.forEach(d => {
+        const v = rd.coachMember[d.key];
+        if (typeof v === 'number') {
+          agg6D[d.key].sum += v;
+          agg6D[d.key].count++;
+        }
+      });
+    }
+  });
+
+  const behBars = BEHAVIOR_DIMENSIONS.map(d => {
+    const a = agg6D[d.key];
+    const avg = a.count > 0 ? a.sum / a.count : 0;
+    const pct = (avg / 5) * 100;
+    return `<div class="bbar-row">
+      <div class="lbl">${d.short}<br><small>${d.label}</small></div>
+      <div class="track"><div class="fill" style="width: ${pct}%; background: ${d.color};"></div></div>
+      <div class="num">${avg > 0 ? fmtScore(avg, 1) : '-'}</div>
+    </div>`;
+  }).join('');
+
+  const roundsHTML = r.perRound.map(rd => {
+    return `<tr>
+      <td class="rname">R${rd.r}</td>
+      <td>${fmtScore(rd.gm, 1)}</td>
+      <td>${fmtScore(rd.leaderAvg, 1)}</td>
+      <td><b>${fmtScore(rd.combined, 2)}</b></td>
+      <td>${rd.behHas ? fmtScore(rd.beh, 0) : '<span style="color:var(--soft);">-</span>'}</td>
+      <td><b>${fmtScore(rd.l3Round, 1)}</b></td>
+    </tr>`;
+  }).join('');
+
+  const narrHTML = r.perRound.map(rd => {
+    const txt = rd.coachMember && rd.coachMember.narrative ? rd.coachMember.narrative.trim() : '';
+    return `<div class="narr-row">
+      <div class="rh">R${rd.r} · ${rd.coachMember && rd.coachMember.token ? 'Token: ' + escapeHTML(rd.coachMember.token) : 'Tanpa Token'}</div>
+      <p class="${txt ? '' : 'empty'}">${txt ? escapeHTML(txt) : 'Coach belum mengisi narasi untuk ronde ini.'}</p>
+    </div>`;
+  }).join('');
+
+  return `<div class="report-page">
+    <div class="report-bg"></div>
+    <div class="report-bg-fallback"></div>
+    <div class="report-content">
+      <div class="report-head">
+        <div class="logos">
+          <img src="assets/images/danantara.png" alt="Danantara" onerror="this.style.display='none'">
+          <span class="div"></span>
+          <img src="assets/images/bsi.png" alt="BSI" onerror="this.style.display='none'">
+        </div>
+        <div class="meta">
+          <b>BSI Corporate University Group</b>
+          Branch Banking Simulation 2026<br>
+          ${dateStr}
+        </div>
+      </div>
+
+      <div class="report-title">
+        <div class="pre">Laporan Penilaian Individual</div>
+        <h2>NEXT BM SCHOOL · CPI REPORT</h2>
+        <div class="sub">Cumulative Performance Index · Branch Banking Simulation</div>
+      </div>
+
+      <div class="identity-grid">
+        <div class="identity-cell"><label>Nama Peserta</label><div class="val">${escapeHTML(r.name)}</div></div>
+        <div class="identity-cell"><label>Kelompok Simulasi</label><div class="val">${escapeHTML(r.gname)}</div></div>
+        <div class="identity-cell"><label>Posisi Awal</label><div class="val">Calon Branch Manager / BM &lt;6 Bulan Tenure</div></div>
+        <div class="identity-cell"><label>Tanggal Penilaian</label><div class="val">${dateStr}</div></div>
+      </div>
+
+      <div class="cpi-block">
+        <div class="cpi-grid">
+          <div class="cpi-comp">
+            <label>Indeks POST (L2)</label>
+            <div class="num" style="color:${r.predPOST.color};">${r.idxPOST}</div>
+            <div class="lbl">${r.hasL2 ? fmtScore(r.l2POST, 1) + ' · ' + r.predPOST.code : 'Belum tersedia'}</div>
+            <div class="idx">Bobot 2 jam · Bank Soal</div>
+          </div>
+          <div class="cpi-comp">
+            <label>Indeks SIM (L3)</label>
+            <div class="num" style="color:${r.predSIM.color};">${r.idxSIM}</div>
+            <div class="lbl">${fmtScore(r.l3SIM, 1)} · ${r.predSIM.code}</div>
+            <div class="idx">Bobot 16 jam · Simulasi</div>
+          </div>
+          <div class="cpi-final">
+            <label>CPI Final</label>
+            <div class="big">${fmtScore(r.cpi, 2)}</div>
+            <span class="pred">${r.cpiPred.code} · ${escapeHTML(r.cpiPred.label)}</span>
+            <div class="status ${r.lulus ? 'lulus' : 'belum'}">${r.lulus ? '✓ LULUS' : '✗ BELUM LULUS'}</div>
+          </div>
+        </div>
+        <div style="margin-top:14px;font-size:10.5px;color:var(--mid);text-align:center;font-family:'JetBrains Mono',monospace;">
+          CPI = (Indeks_POST × 2 + Indeks_SIM × 16) / 18 = (${r.idxPOST} × 2 + ${r.idxSIM} × 16) / 18 = ${fmtScore(r.cpi, 4)}
+        </div>
+      </div>
+
+      <div class="behavior-block">
+        <div class="behavior-h">Profil Behavior 6 Dimensi · Rerata 4 Ronde</div>
+        <div class="behavior-bars">${behBars}</div>
+      </div>
+
+      <div class="rounds-block">
+        <div class="behavior-h">Rincian BPM &amp; L3 per Ronde</div>
+        <table class="rounds-table">
+          <thead><tr><th>Ronde</th><th>BPM GM</th><th>BPM Leader</th><th>Combined</th><th>Beh 6D</th><th>L3 Round</th></tr></thead>
+          <tbody>${roundsHTML}</tbody>
+        </table>
+      </div>
+
+      <div class="narr-block">
+        <div class="behavior-h">Narasi Coaching per Ronde</div>
+        ${narrHTML}
+      </div>
+
+      <div class="report-footer">
+        <span>BSI Next BM School 2026 · Branch Banking Simulation · CPI Architecture v1.0</span>
+        <span>Halaman 1/1 · ${escapeHTML(r.mkey)}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+// =========================================================
+// EXCEL UPLOAD (SheetJS)
+// =========================================================
+function setupUpload(cellId, fileInputId, type) {
+  const cell = document.getElementById(cellId);
+  const inp = document.getElementById(fileInputId);
+  cell.addEventListener('click', () => inp.click());
+  cell.addEventListener('dragover', e => { e.preventDefault(); cell.classList.add('drag'); });
+  cell.addEventListener('dragleave', () => cell.classList.remove('drag'));
+  cell.addEventListener('drop', e => {
+    e.preventDefault(); cell.classList.remove('drag');
+    if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0], type, cell);
+  });
+  inp.addEventListener('change', () => {
+    if (inp.files.length) handleFile(inp.files[0], type, cell);
+  });
+}
+setupUpload('uploadPost', 'filePost', 'post');
+setupUpload('uploadPre', 'filePre', 'pre');
+
+function handleFile(file, type, cell) {
+  if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
+    toast('Format harus .xlsx / .xls / .csv', 'error'); return;
+  }
+  cell.querySelector('.filename').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      processExcelRows(rows, type);
+    } catch (err) {
+      toast('Gagal baca Excel · ' + err.message, 'error');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function processExcelRows(rows, type) {
+  // Expected columns (case-insensitive): nama / name, kelompok / group, score / nilai
+  const norm = s => String(s || '').toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+  let matched = 0, skipped = 0;
+  const updates = {};
+
+  rows.forEach(row => {
+    const keys = Object.keys(row);
+    let nameVal = '', groupVal = '', scoreVal = '';
+    keys.forEach(k => {
+      const nk = norm(k);
+      if (nk === 'nama' || nk === 'name' || nk === 'namapeserta') nameVal = String(row[k]).trim();
+      else if (nk === 'kelompok' || nk === 'group' || nk === 'cabang') groupVal = String(row[k]).trim();
+      else if (nk === 'score' || nk === 'nilai' || nk === 'skor' || nk === (type === 'post' ? 'posttest' : 'pretest')) scoreVal = row[k];
+    });
+    
+    if (!nameVal || scoreVal === '' || scoreVal == null) { skipped++; return; }
+    const score = parseFloat(scoreVal);
+    if (isNaN(score)) { skipped++; return; }
+    
+    // Match name to member list
+    let matchedG = null, matchedI = null;
+    for (let g = 1; g <= 5; g++) {
+      const arr = state.members[g] || [];
+      for (let i = 0; i < arr.length; i++) {
+        if (norm(arr[i]) === norm(nameVal)) {
+          matchedG = g; matchedI = i; break;
+        }
+      }
+      if (matchedG) break;
+    }
+    
+    // If group provided in excel, also try matching by group + name
+    if (!matchedG && groupVal) {
+      const ngroup = norm(groupVal);
+      for (let g = 1; g <= 5; g++) {
+        if (norm(GROUP_NAMES[g]).includes(ngroup) || ngroup.includes(norm(GROUP_NAMES[g].replace('Cabang', '')))) {
+          const arr = state.members[g] || [];
+          for (let i = 0; i < arr.length; i++) {
+            if (norm(arr[i]) === norm(nameVal)) {
+              matchedG = g; matchedI = i; break;
+            }
+          }
+        }
+      }
+    }
+    
+    if (!matchedG) { skipped++; return; }
+    
+    const mkey = 'g' + matchedG + '_m' + (matchedI + 1);
+    if (type === 'post') {
+      updates['l2_scores/g' + matchedG + '/' + mkey + '/post'] = score;
+      updates['l2_scores/g' + matchedG + '/' + mkey + '/name'] = nameVal;
+    } else {
+      updates['pre_test/g' + matchedG + '/' + mkey + '/pre'] = score;
+      updates['pre_test/g' + matchedG + '/' + mkey + '/name'] = nameVal;
+    }
+    matched++;
+  });
+  
+  if (matched === 0) {
+    toast('Tidak ada nama yang cocok · pastikan kolom Nama persis dengan daftar anggota di Admin', 'error');
+    return;
+  }
+  
+  db.ref().update(updates).then(() => {
+    toast(`Excel ${type.toUpperCase()} terimport · ${matched} cocok · ${skipped} dilewati`, 'success');
+  }).catch(err => toast('Gagal simpan · ' + err.message, 'error'));
+}
+
+// =========================================================
+// PRINT & EXPORT
+// =========================================================
+document.getElementById('btnPrint').addEventListener('click', () => {
+  if (!document.getElementById('individuSelect').value) {
+    toast('Pilih peserta dulu', 'warn'); return;
+  }
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelector('[data-tab="individu"]').classList.add('active');
+  document.getElementById('panel-individu').classList.add('active');
+  setTimeout(() => window.print(), 200);
+});
+
+document.getElementById('btnPrintAll').addEventListener('click', () => {
+  if (state.computed.length === 0) { toast('Tidak ada peserta untuk dicetak', 'warn'); return; }
+  if (!confirm(`Cetak ${state.computed.length} report individual sekaligus? Browser akan membuka dialog Print.`)) return;
+  
+  // Switch to individual panel & render all
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelector('[data-tab="individu"]').classList.add('active');
+  document.getElementById('panel-individu').classList.add('active');
+  
+  let html = '';
+  state.computed.forEach(r => { html += renderReportPage(r); });
+  document.getElementById('reportArea').innerHTML = html;
+  setTimeout(() => window.print(), 400);
+});
+
+document.getElementById('btnExportCSV').addEventListener('click', () => {
+  if (state.computed.length === 0) { toast('Tidak ada data', 'warn'); return; }
+  const headers = ['Nama','Kelompok','L2 POST','Idx POST','Predikat POST','L3 SIM','Idx SIM','Predikat SIM','CPI','Predikat CPI','Status','Pre-Test','Learning Gain'];
+  const lines = [headers.join(',')];
+  state.computed.forEach(r => {
+    const cols = [
+      `"${r.name.replace(/"/g, '""')}"`,
+      `"${r.gname}"`,
+      r.hasL2 ? r.l2POST : '',
+      r.idxPOST,
+      r.predPOST.code,
+      fmtScore(r.l3SIM, 2),
+      r.idxSIM,
+      r.predSIM.code,
+      fmtScore(r.cpi, 4),
+      r.cpiPred.code,
+      r.lulus ? 'LULUS' : 'BELUM LULUS',
+      r.l2PRE !== null ? r.l2PRE : '',
+      r.learningGain !== null ? fmtScore(r.learningGain, 2) : ''
+    ];
+    lines.push(cols.join(','));
+  });
+  const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const ts = new Date().toISOString().slice(0,10);
+  a.href = url; a.download = `bsi-cpi-report-${ts}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  toast('CSV terunduh · ' + state.computed.length + ' baris', 'success');
+});
+
+// LOGOUT
+document.getElementById('btnLogout').addEventListener('click', () => {
+  localStorage.removeItem('bsi_auth');
+  localStorage.removeItem('bsi_role');
+  localStorage.removeItem('bsi_label');
+  window.location.replace('index.html?logout=1');
+});
+
+</script>
+</body>
+</html>

@@ -1,64 +1,13 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
-<meta name="theme-color" content="#00A39D">
-<title>Layar Proyektor · BSI Next BM School 2026</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+"""build_04_projector.py — Layar Proyektor untuk peserta. Read-only display."""
+import sys, os
+sys.path.insert(0, os.path.dirname(__file__))
+from common import (html_head, FIREBASE_CONFIG, FIREBASE_PATHS, GROUP_NAMES, AMANAH_PER_ROUND,
+                    CSS_ROOT, CSS_BUTTONS, CSS_TOAST,
+                    UTILITY_JS, FOOTER_TEXT, auth_guard)
 
-<style>
-:root {
-  --teal: #00A39D;
-  --teal-dark: #007E79;
-  --teal-10: rgba(0,163,157,0.10);
-  --teal-20: rgba(0,163,157,0.20);
-  --gold: #F8AD3C;
-  --gold-dark: #D88A20;
-  --cream: #F6F3EE;
-  --white: #FFFFFF;
-  --text: #1A2332;
-  --mid: #4A5568;
-  --soft: #9AA5B4;
-  --border: #E2DED8;
-  --in-bg: #F9F8F5;
-  --success: #2F9E66;
-  --warn: #E89B2A;
-  --danger: #E53E3E;
-  --shadow-sm: 0 2px 4px rgba(0,0,0,.04);
-  --shadow-md: 0 4px 12px rgba(0,0,0,.08);
-  --shadow-lg: 0 16px 48px rgba(0,0,0,.10);
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
-}
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-html, body { min-height: 100vh; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; background: var(--cream); color: var(--text); -webkit-font-smoothing: antialiased; }
-button { font-family: inherit; }
+OUT = '/home/claude/build/bsi-scoring/projector.html'
 
-.btn { background: var(--teal); border: none; border-radius: 10px; padding: 11px 18px; font-size: 13px; font-weight: 700; color: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 7px; box-shadow: 0 4px 14px rgba(0,163,157,.28); transition: transform .15s, box-shadow .15s, background .15s; }
-.btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,163,157,.36); background: var(--teal-dark); }
-.btn:active:not(:disabled) { transform: translateY(0); }
-.btn:disabled { opacity: .35; cursor: not-allowed; }
-.btn-gold { background: var(--gold); box-shadow: 0 4px 14px rgba(248,173,60,.32); }
-.btn-gold:hover:not(:disabled) { background: var(--gold-dark); box-shadow: 0 8px 22px rgba(248,173,60,.42); }
-.btn-ghost { background: transparent; color: var(--text); border: 1.5px solid var(--border); box-shadow: none; }
-.btn-ghost:hover:not(:disabled) { background: var(--in-bg); border-color: var(--teal); color: var(--teal); }
-.btn-danger { background: var(--danger); box-shadow: 0 4px 14px rgba(229,62,62,.28); }
-.btn-sm { padding: 7px 12px; font-size: 12px; }
-.btn-lg { padding: 14px 22px; font-size: 14px; }
-.btn-block { width: 100%; }
-
-.toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); padding: 12px 22px; background: var(--text); color: #fff; border-radius: 10px; font-size: 13px; font-weight: 600; box-shadow: var(--shadow-lg); opacity: 0; transition: opacity .25s, transform .25s; z-index: 9999; pointer-events: none; max-width: 90%; text-align: center; }
-.toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
-.toast-success { background: var(--success); }
-.toast-warn { background: var(--warn); }
-.toast-error { background: var(--danger); }
-
+CSS = CSS_ROOT + CSS_BUTTONS + CSS_TOAST + """
 body { background: linear-gradient(135deg, #0A1628, #1A2332); color: #fff; min-height: 100vh; overflow: hidden; }
 body::before { content: ''; position: fixed; inset: 0; opacity: .15; pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cg fill='none' stroke='%2300A39D' stroke-width='0.5'%3E%3Cpolygon points='60,10 110,60 60,110 10,60'/%3E%3Cpolygon points='60,30 90,60 60,90 30,60'/%3E%3C/g%3E%3C/svg%3E"); }
@@ -88,113 +37,9 @@ body::before { content: ''; position: fixed; inset: 0; opacity: .15; pointer-eve
 .live-pill { display: inline-flex; align-items: center; gap: 6px; }
 .live-pill .dot { width: 8px; height: 8px; background: #6FD89A; border-radius: 50%; animation: pl 1.5s infinite; }
 @keyframes pl { 0%,100%{opacity:1} 50%{opacity:.4} }
-</style>
-</head>
-<body>
-<div class="shell">
-  <div class="topbar">
-    <div class="brand">BSI Next BM School 2026<small>Branch Banking Simulation</small></div>
-    <div class="timer-big" id="timerBig">25:00</div>
-  </div>
+"""
 
-  <div class="center">
-    <div class="round-label" id="roundLabel">RONDE 1 DARI 4</div>
-    <h1 class="round-title" id="roundTitle">Selisih Kas Pak Bagus</h1>
-    <div class="round-type" id="roundType">Operasional · Internal Control</div>
-    <div class="duration" id="duration">Durasi 25 menit</div>
-
-    <div class="standings" id="standings"></div>
-  </div>
-
-  <div class="bottombar">
-    <div class="live-pill"><span class="dot"></span><span>Live · Sync via Firebase</span></div>
-    <div>Tekan F untuk fullscreen · Layar otomatis update</div>
-  </div>
-</div>
-
-<script>
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyBwc9qm9tuoBK7ba2E7k8IY3bjlXTNRoUc",
-  authDomain: "bsi-next-bm-2026.firebaseapp.com",
-  databaseURL: "https://bsi-next-bm-2026-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "bsi-next-bm-2026",
-  storageBucket: "bsi-next-bm-2026.firebasestorage.app",
-  messagingSenderId: "685360057111",
-  appId: "1:685360057111:web:3f2c3fe05b5054727e0552"
-};
-
-const PATHS = {
-  bpmGM:        (r, g) => `bpm_gm/r${r}/g${g}`,
-  bpmGMRound:   (r)    => `bpm_gm/r${r}`,
-  bpmLeader:    (r, fromG, toG) => `bpm_leader/r${r}/from_g${fromG}/to_g${toG}`,
-  bpmLeaderRoot: ()    => `bpm_leader`,
-  coachData:    (g, r) => `coach_data/g${g}/r${r}`,
-  coachRoot:    ()     => `coach_data`,
-  amanah:       (r, g) => `amanah_coins/r${r}/g${g}`,
-  amanahRoot:   ()     => `amanah_coins`,
-  session:      ()     => `session`,
-  sessionRound: ()     => `session/currentRound`,
-  sessionLocked: ()    => `session/locked`,
-  groups:       ()     => `groups`,
-  groupMembers: (g)    => `groups/g${g}/members`,
-  l2Scores:     ()     => `l2_scores`,
-  l2Member:     (g, m) => `l2_scores/g${g}/${m}`,
-  preTest:      (g, m) => `pre_test/g${g}/${m}`,
-  customAmanah: (r, g) => `custom_amanah/r${r}/g${g}`
-};
-
-const GROUP_NAMES = {
-  1: 'Cabang Borobudur',
-  2: 'Cabang Prambanan',
-  3: 'Cabang Diponegoro',
-  4: 'Cabang Gajah Mada',
-  5: 'Cabang Majapahit'
-};
-
-const AMANAH_PER_ROUND = { 1: 50, 2: 65, 3: 80, 4: 100 };
-const ROUND_TITLES = {
-  1: 'R1 · Selisih Kas Pak Bagus (Operasional)',
-  2: 'R2 · Pondok Pesantren Rp 4M (Pembiayaan)',
-  3: 'R3 · Restruktur Konflik (Leadership)',
-  4: 'R4 · Crisis Compliance (Capstone)'
-};
-
-function toast(msg, type) {
-  type = type || 'info';
-  const t = document.createElement('div');
-  t.className = 'toast toast-' + type;
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => t.classList.add('on'), 10);
-  setTimeout(() => {
-    t.classList.remove('on');
-    setTimeout(() => t.remove(), 300);
-  }, 2800);
-}
-function fmtScore(n, decimals) {
-  decimals = decimals == null ? 2 : decimals;
-  if (n == null || isNaN(n)) return '0' + (decimals > 0 ? '.' + '0'.repeat(decimals) : '');
-  return Number(n).toFixed(decimals);
-}
-function predikatFromScore(score) {
-  if (score >= 90) return { code: 'A', label: 'Sangat Kompeten', idx: 4, color: '#2F9E66' };
-  if (score >= 80) return { code: 'B', label: 'Kompeten',          idx: 3, color: '#00A39D' };
-  if (score >= 70) return { code: 'C', label: 'Cukup Kompeten',    idx: 2, color: '#F8AD3C' };
-  return                  { code: 'D', label: 'Belum Kompeten',     idx: 1, color: '#E53E3E' };
-}
-function escapeHTML(s) {
-  if (s == null) return '';
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
-(function authGuard() {
-  const auth = localStorage.getItem('bsi_auth');
-  const role = localStorage.getItem('bsi_role');
-  if (!auth || role !== 'projector') {
-    window.location.replace('index.html');
-  }
-})();
-
+JS = FIREBASE_CONFIG + FIREBASE_PATHS + GROUP_NAMES + AMANAH_PER_ROUND + UTILITY_JS + auth_guard('projector') + """
 firebase.initializeApp(FIREBASE_CONFIG);
 const db = firebase.database();
 
@@ -306,6 +151,37 @@ document.addEventListener('keydown', e => {
     else document.exitFullscreen();
   }
 });
-</script>
+"""
+
+HTML = html_head('Layar Proyektor') + f"""
+<style>{CSS}</style>
+</head>
+<body>
+<div class="shell">
+  <div class="topbar">
+    <div class="brand">BSI Next BM School 2026<small>Branch Banking Simulation</small></div>
+    <div class="timer-big" id="timerBig">25:00</div>
+  </div>
+
+  <div class="center">
+    <div class="round-label" id="roundLabel">RONDE 1 DARI 4</div>
+    <h1 class="round-title" id="roundTitle">Selisih Kas Pak Bagus</h1>
+    <div class="round-type" id="roundType">Operasional · Internal Control</div>
+    <div class="duration" id="duration">Durasi 25 menit</div>
+
+    <div class="standings" id="standings"></div>
+  </div>
+
+  <div class="bottombar">
+    <div class="live-pill"><span class="dot"></span><span>Live · Sync via Firebase</span></div>
+    <div>Tekan F untuk fullscreen · Layar otomatis update</div>
+  </div>
+</div>
+
+<script>{JS}</script>
 </body>
-</html>
+</html>"""
+
+with open(OUT, 'w', encoding='utf-8') as f:
+    f.write(HTML)
+print(f'projector.html: {len(HTML)} bytes, {HTML.count(chr(10))+1} lines')

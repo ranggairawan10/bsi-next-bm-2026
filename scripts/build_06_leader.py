@@ -1,69 +1,13 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
-<meta name="theme-color" content="#00A39D">
-<title>Group Leader · BSI Next BM School 2026</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+"""build_06_leader.py — Group Leader Peer BPM Scoring."""
+import sys, os
+sys.path.insert(0, os.path.dirname(__file__))
+from common import (html_head, FIREBASE_CONFIG, FIREBASE_PATHS, GROUP_NAMES,
+                    CSS_ROOT, CSS_BUTTONS, CSS_TOAST, CSS_LOGO_ROW,
+                    UTILITY_JS, LOGO_ROW_HTML, FOOTER_TEXT, auth_guard)
 
-<style>
-:root {
-  --teal: #00A39D;
-  --teal-dark: #007E79;
-  --teal-10: rgba(0,163,157,0.10);
-  --teal-20: rgba(0,163,157,0.20);
-  --gold: #F8AD3C;
-  --gold-dark: #D88A20;
-  --cream: #F6F3EE;
-  --white: #FFFFFF;
-  --text: #1A2332;
-  --mid: #4A5568;
-  --soft: #9AA5B4;
-  --border: #E2DED8;
-  --in-bg: #F9F8F5;
-  --success: #2F9E66;
-  --warn: #E89B2A;
-  --danger: #E53E3E;
-  --shadow-sm: 0 2px 4px rgba(0,0,0,.04);
-  --shadow-md: 0 4px 12px rgba(0,0,0,.08);
-  --shadow-lg: 0 16px 48px rgba(0,0,0,.10);
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
-}
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-html, body { min-height: 100vh; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; background: var(--cream); color: var(--text); -webkit-font-smoothing: antialiased; }
-button { font-family: inherit; }
+OUT = '/home/claude/build/bsi-scoring/leader.html'
 
-.btn { background: var(--teal); border: none; border-radius: 10px; padding: 11px 18px; font-size: 13px; font-weight: 700; color: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 7px; box-shadow: 0 4px 14px rgba(0,163,157,.28); transition: transform .15s, box-shadow .15s, background .15s; }
-.btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,163,157,.36); background: var(--teal-dark); }
-.btn:active:not(:disabled) { transform: translateY(0); }
-.btn:disabled { opacity: .35; cursor: not-allowed; }
-.btn-gold { background: var(--gold); box-shadow: 0 4px 14px rgba(248,173,60,.32); }
-.btn-gold:hover:not(:disabled) { background: var(--gold-dark); box-shadow: 0 8px 22px rgba(248,173,60,.42); }
-.btn-ghost { background: transparent; color: var(--text); border: 1.5px solid var(--border); box-shadow: none; }
-.btn-ghost:hover:not(:disabled) { background: var(--in-bg); border-color: var(--teal); color: var(--teal); }
-.btn-danger { background: var(--danger); box-shadow: 0 4px 14px rgba(229,62,62,.28); }
-.btn-sm { padding: 7px 12px; font-size: 12px; }
-.btn-lg { padding: 14px 22px; font-size: 14px; }
-.btn-block { width: 100%; }
-
-.toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); padding: 12px 22px; background: var(--text); color: #fff; border-radius: 10px; font-size: 13px; font-weight: 600; box-shadow: var(--shadow-lg); opacity: 0; transition: opacity .25s, transform .25s; z-index: 9999; pointer-events: none; max-width: 90%; text-align: center; }
-.toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
-.toast-success { background: var(--success); }
-.toast-warn { background: var(--warn); }
-.toast-error { background: var(--danger); }
-
-.logo-row { display: flex; align-items: center; justify-content: center; gap: 18px; padding: 10px 18px; background: var(--cream); border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 22px; }
-.logo-dan, .logo-bsi { height: 26px; width: auto; object-fit: contain; }
-.logo-bsi { height: 32px; }
-.logo-div { width: 1px; height: 30px; background: var(--border); }
-
+CSS = CSS_ROOT + CSS_BUTTONS + CSS_TOAST + CSS_LOGO_ROW + """
 body { background: var(--cream); }
 .shell { max-width: 900px; margin: 0 auto; padding: 16px; }
 .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 14px; flex-wrap: wrap; gap: 12px; box-shadow: var(--shadow-sm); }
@@ -109,111 +53,9 @@ body { background: var(--cream); }
   .scale-strip { grid-template-columns: repeat(11, 1fr); }
   .scale-cell:nth-child(even) { display: none; }
 }
-</style>
-</head>
-<body>
-<div class="shell">
-  <div class="topbar">
-    <div>
-<div class="logo-row">
-  <img class="logo-dan" src="assets/images/danantara.png" alt="Danantara" onerror="this.style.display='none'">
-  <span class="logo-div"></span>
-  <img class="logo-bsi" src="assets/images/bsi.png" alt="BSI" onerror="this.style.display='none'">
-</div>
-</div>
-    <div>
-      <h1 id="leaderLabel">Group Leader</h1>
-      <div class="group-badge"><span id="leaderGroup">Cabang ...</span></div>
-    </div>
-    <button class="btn btn-ghost btn-sm" onclick="logout()">Keluar</button>
-  </div>
+"""
 
-  <div class="tabs"><button class="tab round-tab" data-round="1" onclick="switchRound(1)">RONDE 1<small>Selisih Kas</small></button><button class="tab round-tab" data-round="2" onclick="switchRound(2)">RONDE 2<small>Pondok 4M</small></button><button class="tab round-tab" data-round="3" onclick="switchRound(3)">RONDE 3<small>Konflik</small></button><button class="tab round-tab" data-round="4" onclick="switchRound(4)">RONDE 4<small>Crisis</small></button></div>
-
-  <div class="notice">
-    <strong>Peer BPM Scoring · Skala −10 hingga +10.</strong> Anda menilai 4 kelompok lain berdasarkan kualitas argumen kelompok mereka di ronde aktif. Kelompok sendiri tidak dinilai. Skor di-save otomatis. Justifikasi singkat membantu kalibrasi inter-rater.
-  </div>
-
-  <div id="peers"></div>
-
-  <div style="text-align:center;font-size:10.5px;color:var(--soft);margin-top:18px;padding:14px;">BSI Corporate University Group · Branch Banking Simulation 2026 · HCR.ID</div>
-</div>
-
-<script>
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyBwc9qm9tuoBK7ba2E7k8IY3bjlXTNRoUc",
-  authDomain: "bsi-next-bm-2026.firebaseapp.com",
-  databaseURL: "https://bsi-next-bm-2026-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "bsi-next-bm-2026",
-  storageBucket: "bsi-next-bm-2026.firebasestorage.app",
-  messagingSenderId: "685360057111",
-  appId: "1:685360057111:web:3f2c3fe05b5054727e0552"
-};
-
-const PATHS = {
-  bpmGM:        (r, g) => `bpm_gm/r${r}/g${g}`,
-  bpmGMRound:   (r)    => `bpm_gm/r${r}`,
-  bpmLeader:    (r, fromG, toG) => `bpm_leader/r${r}/from_g${fromG}/to_g${toG}`,
-  bpmLeaderRoot: ()    => `bpm_leader`,
-  coachData:    (g, r) => `coach_data/g${g}/r${r}`,
-  coachRoot:    ()     => `coach_data`,
-  amanah:       (r, g) => `amanah_coins/r${r}/g${g}`,
-  amanahRoot:   ()     => `amanah_coins`,
-  session:      ()     => `session`,
-  sessionRound: ()     => `session/currentRound`,
-  sessionLocked: ()    => `session/locked`,
-  groups:       ()     => `groups`,
-  groupMembers: (g)    => `groups/g${g}/members`,
-  l2Scores:     ()     => `l2_scores`,
-  l2Member:     (g, m) => `l2_scores/g${g}/${m}`,
-  preTest:      (g, m) => `pre_test/g${g}/${m}`,
-  customAmanah: (r, g) => `custom_amanah/r${r}/g${g}`
-};
-
-const GROUP_NAMES = {
-  1: 'Cabang Borobudur',
-  2: 'Cabang Prambanan',
-  3: 'Cabang Diponegoro',
-  4: 'Cabang Gajah Mada',
-  5: 'Cabang Majapahit'
-};
-
-function toast(msg, type) {
-  type = type || 'info';
-  const t = document.createElement('div');
-  t.className = 'toast toast-' + type;
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => t.classList.add('on'), 10);
-  setTimeout(() => {
-    t.classList.remove('on');
-    setTimeout(() => t.remove(), 300);
-  }, 2800);
-}
-function fmtScore(n, decimals) {
-  decimals = decimals == null ? 2 : decimals;
-  if (n == null || isNaN(n)) return '0' + (decimals > 0 ? '.' + '0'.repeat(decimals) : '');
-  return Number(n).toFixed(decimals);
-}
-function predikatFromScore(score) {
-  if (score >= 90) return { code: 'A', label: 'Sangat Kompeten', idx: 4, color: '#2F9E66' };
-  if (score >= 80) return { code: 'B', label: 'Kompeten',          idx: 3, color: '#00A39D' };
-  if (score >= 70) return { code: 'C', label: 'Cukup Kompeten',    idx: 2, color: '#F8AD3C' };
-  return                  { code: 'D', label: 'Belum Kompeten',     idx: 1, color: '#E53E3E' };
-}
-function escapeHTML(s) {
-  if (s == null) return '';
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
-(function authGuard() {
-  const auth = localStorage.getItem('bsi_auth');
-  const role = localStorage.getItem('bsi_role');
-  if (!auth || role !== 'leader') {
-    window.location.replace('index.html');
-  }
-})();
-
+JS = FIREBASE_CONFIG + FIREBASE_PATHS + GROUP_NAMES + UTILITY_JS + auth_guard('leader') + """
 firebase.initializeApp(FIREBASE_CONFIG);
 const db = firebase.database();
 
@@ -325,6 +167,42 @@ function logout() {
 document.getElementById('leaderLabel').textContent = myLabel || 'Group Leader';
 document.getElementById('leaderGroup').textContent = myGname || '';
 renderPeers();
-</script>
+"""
+
+ROUND_TABS_HTML = ""
+for r in range(1, 5):
+    titles = ['Selisih Kas', 'Pondok 4M', 'Konflik', 'Crisis']
+    ROUND_TABS_HTML += f'<button class="tab round-tab" data-round="{r}" onclick="switchRound({r})">RONDE {r}<small>{titles[r-1]}</small></button>'
+
+HTML = html_head('Group Leader') + f"""
+<style>{CSS}</style>
+</head>
+<body>
+<div class="shell">
+  <div class="topbar">
+    <div>{LOGO_ROW_HTML}</div>
+    <div>
+      <h1 id="leaderLabel">Group Leader</h1>
+      <div class="group-badge"><span id="leaderGroup">Cabang ...</span></div>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">Keluar</button>
+  </div>
+
+  <div class="tabs">{ROUND_TABS_HTML}</div>
+
+  <div class="notice">
+    <strong>Peer BPM Scoring · Skala −10 hingga +10.</strong> Anda menilai 4 kelompok lain berdasarkan kualitas argumen kelompok mereka di ronde aktif. Kelompok sendiri tidak dinilai. Skor di-save otomatis. Justifikasi singkat membantu kalibrasi inter-rater.
+  </div>
+
+  <div id="peers"></div>
+
+  <div style="text-align:center;font-size:10.5px;color:var(--soft);margin-top:18px;padding:14px;">{FOOTER_TEXT}</div>
+</div>
+
+<script>{JS}</script>
 </body>
-</html>
+</html>"""
+
+with open(OUT, 'w', encoding='utf-8') as f:
+    f.write(HTML)
+print(f'leader.html: {len(HTML)} bytes, {HTML.count(chr(10))+1} lines')

@@ -174,6 +174,32 @@
     .koin-grand{font-weight:800;color:var(--teal);}
     .koin-toast{position:fixed;bottom:24px;right:24px;z-index:200;background:var(--gold);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:700;box-shadow:0 4px 16px rgba(248,173,60,.4);transition:opacity .3s;opacity:0;pointer-events:none;}
     .koin-toast.show{opacity:1;}
+
+    /* Toast notification */
+    .gm-toast{
+      position:fixed;bottom:24px;right:24px;z-index:500;
+      padding:11px 20px;border-radius:10px;
+      font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;
+      box-shadow:0 4px 20px rgba(0,0,0,.18);
+      transition:opacity .3s,transform .3s;
+      opacity:0;transform:translateY(8px);pointer-events:none;
+    }
+    .gm-toast.show{opacity:1;transform:translateY(0);}
+    .gm-toast.ok{background:#00A39D;color:#fff;}
+    .gm-toast.err{background:#C53030;color:#fff;}
+    .gm-toast.warn{background:#F8AD3C;color:#fff;}
+
+    /* Firebase status indicator */
+    .fb-status{
+      position:fixed;top:68px;right:16px;z-index:200;
+      padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;
+      display:flex;align-items:center;gap:5px;
+    }
+    .fb-status.ok{background:rgba(72,187,120,.15);border:1px solid rgba(72,187,120,.3);color:#22543D;}
+    .fb-status.err{background:rgba(197,48,48,.12);border:1px solid rgba(197,48,48,.3);color:#C53030;}
+    .fb-dot{width:6px;height:6px;border-radius:50%;}
+    .fb-status.ok .fb-dot{background:#48BB78;}
+    .fb-status.err .fb-dot{background:#C53030;animation:blink .8s infinite;}
 </style>
 </head>
 <body>
@@ -195,7 +221,7 @@
   <div class="session-ctrl">
     <div class="timer" id="timer" onclick="toggleTimer()" title="Klik start/stop 90 menit">90:00</div>
     <button class="btn-sm btn-gold" onclick="setLiveRound()" id="btnSetLive">Set Ronde Aktif</button>
-    <button class="btn-sm btn-outline" onclick="toggleLock()" id="btnLock">&#x1F513; Buka</button>
+    <button class="btn-sm btn-outline" onclick="toggleLock()" id="btnLock">&#128275; Buka</button>
   </div>
 </header>
 
@@ -543,10 +569,29 @@
     </div>
   </div>
 </div>
-<div class="locked-banner" id="lockedBanner">&#x1F512; Sesi Terkunci &mdash; Input dinonaktifkan</div>
+<div class="locked-banner" id="lockedBanner">&#128274; Sesi Terkunci &mdash; Input dinonaktifkan</div>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script>
+/* Early globals - available immediately */
+window.showToast = function(msg, type) {
+  var t = document.getElementById('gmToast');
+  if(!t) return;
+  t.textContent = msg;
+  t.className = 'gm-toast ' + (type||'ok') + ' show';
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 3000);
+};
+window.updateFbStatus = function(ok, msg) {
+  var el = document.getElementById('fbStatus');
+  var tx = document.getElementById('fbStatusText');
+  if(!el || !tx) return;
+  el.style.display = 'flex';
+  el.className = 'fb-status ' + (ok ? 'ok' : 'err');
+  tx.textContent = msg || (ok ? '&#9679; Firebase Terhubung' : '&#9679; Firebase Error');
+};
+</script>
 <script>
 if(localStorage.getItem('bsi_auth')!=='1'||localStorage.getItem('bsi_role')!=='gamemaster')
   location.href='index.html';
@@ -556,7 +601,17 @@ const FB={apiKey:"AIzaSyBwc9qm9tuoBK7ba2E7k8IY3bjlXTNRoUc",authDomain:"bsi-next-
   storageBucket:"bsi-next-bm-2026.firebasestorage.app",messagingSenderId:"685360057111",
   appId:"1:685360057111:web:3f2c3fe05b5054727e0552"};
 let db=null;
-try{firebase.initializeApp(FB);db=firebase.database();}catch(e){console.warn('Firebase:',e);}
+try{
+  const _app = (typeof firebase!=='undefined' && firebase.apps && firebase.apps.length)
+    ? firebase.app()
+    : firebase.initializeApp(FB);
+  db = _app.database();
+  console.log('Firebase initialized OK');
+}catch(e){
+  console.warn('Firebase init failed:',e.message);
+  db = null;
+  setTimeout(()=>updateFbStatus(false,'Firebase: '+e.message),200);
+}
 
 const GROUPS={1:'Borobudur',2:'Prambanan',3:'Diponegoro',4:'Gajah Mada',5:'Majapahit'};
 const INDICATORS=[
@@ -652,7 +707,12 @@ function saveGroup(g){
     motivasi_tim:scores[g]&&scores[g].motivasi_tim||0,kontrol_operasional:scores[g]&&scores[g].kontrol_operasional||0,
     total:INDICATORS.reduce((s,ind)=>s+(scores[g]&&scores[g][ind.key]||0),0),
     note:scores[g]&&scores[g].note||'',savedAt:Date.now()};
-  if(db){db.ref('/bpm_gm/r'+currentRound+'/g'+g).set(data).then(()=>markSaved(g)).catch(()=>markDirty(g));}
+  if(db){
+    // Test Firebase connection
+    db.ref('.info/connected').on('value', snap => {
+      const connected = snap.val();
+      updateFbStatus(connected, connected ? 'Firebase Terhubung' : 'Firebase Terputus');
+    });db.ref('/bpm_gm/r'+currentRound+'/g'+g).set(data).then(()=>{markSaved(g);showToast('✓ Kelompok '+GROUPS[g]+' tersimpan');updateFbStatus(true,'Firebase OK');}).catch(e=>{markDirty(g);showToast('Gagal simpan — cek koneksi','err');updateFbStatus(false,'Firebase Error');console.error(e);});}
   else{setTimeout(()=>markSaved(g),400);}
 }
 function saveAll(){for(let g=1;g<=5;g++)saveGroup(g);}
@@ -710,7 +770,7 @@ function toggleLock(){
 function updateSessionUI(){
   document.querySelectorAll('.rtab').forEach((t,i)=>t.classList.toggle('live',i+1===liveRound));
   const btn=document.getElementById('btnLock');
-  if(btn){btn.textContent=sessionLocked?'?? Kunci':'?? Buka';btn.className=sessionLocked?'btn-sm btn-red':'btn-sm btn-outline';}
+  if(btn){btn.innerHTML=sessionLocked?'&#128274; Kunci':'&#128275; Buka';btn.className=sessionLocked?'btn-sm btn-red':'btn-sm btn-outline';}
   document.querySelectorAll('input[type=range],.note-input,.btn-save').forEach(el=>el.disabled=sessionLocked);
   const lb=document.getElementById('lockedBanner');
   if(lb)lb.classList.toggle('show',sessionLocked);
@@ -879,6 +939,24 @@ document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='s'){e.preventDefa
 .logout-btn-light:hover{background:rgba(197,48,48,.1);color:#C53030;border-color:rgba(197,48,48,.3);}
 </style>
 <script>
+/* ── HELPER FUNCTIONS (defined first) ── */
+function showToast(msg, type) {
+  const t = document.getElementById('gmToast');
+  if(!t) return;
+  t.textContent = msg;
+  t.className = 'gm-toast ' + (type||'ok') + ' show';
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+function updateFbStatus(ok, msg) {
+  const el = document.getElementById('fbStatus');
+  const tx = document.getElementById('fbStatusText');
+  if(!el || !tx) return;
+  el.style.display = 'flex';
+  el.className = 'fb-status ' + (ok ? 'ok' : 'err');
+  tx.textContent = msg || (ok ? 'Firebase Terhubung' : 'Firebase Error');
+}
+
 function doLogout(){
   if(confirm('Keluar dari sesi ini?')){
     localStorage.removeItem('bsi_auth');
@@ -890,5 +968,13 @@ function doLogout(){
   }
 }
 </script><button class="logout-btn logout-btn-light" onclick="doLogout()">&#x2192; Keluar</button>
+
+<div class="gm-toast" id="gmToast"></div>
+<div class="fb-status" id="fbStatus" style="display:none">
+  <div class="fb-dot"></div>
+  <span id="fbStatusText">Firebase</span>
+</div>
 </body>
 </html>
+</script>
+</body>

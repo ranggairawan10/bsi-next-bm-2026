@@ -182,6 +182,40 @@
     .slide[data-round="2"][data-idx="0"]{background-image:linear-gradient(rgba(7,17,31,.78),rgba(7,17,31,.82)),url('assets/images/ronde-2.jpg');background-size:cover;background-position:center;}
     .slide[data-round="3"][data-idx="0"]{background-image:linear-gradient(rgba(7,17,31,.78),rgba(7,17,31,.82)),url('assets/images/ronde-3.jpg');background-size:cover;background-position:center;}
     .slide[data-round="4"][data-idx="0"]{background-image:linear-gradient(rgba(7,17,31,.78),rgba(7,17,31,.82)),url('assets/images/ronde-4.jpg');background-size:cover;background-position:center;}
+
+    /* ── LIGHT SLIDE THEME (dossier/pnl/cover) ── */
+    .slide[data-section="cover"] .cover-title,
+    .slide[data-section="dossier"] .slide-title,
+    .slide[data-section="pnl"] .slide-title,
+    .slide[data-section="cover"] .cover-sub,
+    .slide[data-section="dossier"] .slide-meta,
+    .slide[data-section="pnl"] .slide-meta { color:#1A2332; }
+
+    .slide[data-section="dossier"] .kpi-value,
+    .slide[data-section="pnl"] .kpi-value { color:#1A2332; }
+
+    .slide[data-section="dossier"] .kpi-label,
+    .slide[data-section="pnl"] .kpi-label { color:#4A5568; }
+
+    .slide[data-section="dossier"] .kpi-card,
+    .slide[data-section="pnl"] .kpi-card {
+      background:rgba(255,255,255,.75);
+      border:1px solid rgba(0,163,157,.2);
+      backdrop-filter:blur(4px);
+    }
+
+    .slide[data-section="dossier"] .tc,
+    .slide[data-section="pnl"] .tc {
+      background:rgba(255,255,255,.75);
+      border:1px solid rgba(0,163,157,.15);
+    }
+    .slide[data-section="dossier"] .tc-name { color:#1A2332; }
+    .slide[data-section="dossier"] .tc-detail { color:#4A5568; }
+
+    .slide[data-section="dossier"] .section-title,
+    .slide[data-section="dossier"] .rh-title { color:#1A2332; }
+
+    .slide[data-section="cover"] .cover-chips .sil-tag { color:var(--teal); }
 </style>
 </head>
 <body>

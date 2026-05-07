@@ -220,5 +220,28 @@ window.addEventListener('DOMContentLoaded',()=>{
 });
 document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='s'){e.preventDefault();saveAll();}}); 
 </script>
+
+<style>
+.logout-btn{position:fixed;bottom:16px;left:16px;z-index:500;
+  padding:6px 12px;border-radius:8px;border:1.5px solid rgba(255,255,255,.2);
+  background:rgba(0,0,0,.35);backdrop-filter:blur(6px);
+  color:rgba(255,255,255,.6);font-family:inherit;font-size:11px;font-weight:600;
+  cursor:pointer;transition:all .2s;}
+.logout-btn:hover{background:rgba(197,48,48,.7);color:#fff;border-color:rgba(197,48,48,.5);}
+.logout-btn-light{background:rgba(0,0,0,.06);border-color:rgba(0,0,0,.1);color:#9AA5B4;}
+.logout-btn-light:hover{background:rgba(197,48,48,.1);color:#C53030;border-color:rgba(197,48,48,.3);}
+</style>
+<script>
+function doLogout(){
+  if(confirm('Keluar dari sesi ini?')){
+    localStorage.removeItem('bsi_auth');
+    localStorage.removeItem('bsi_role');
+    localStorage.removeItem('bsi_group');
+    localStorage.removeItem('bsi_gname');
+    localStorage.removeItem('bsi_label');
+    location.href='index.html';
+  }
+}
+</script><button class="logout-btn logout-btn-light" onclick="doLogout()">&#x2192; Keluar</button>
 </body>
 </html>

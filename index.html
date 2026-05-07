@@ -166,7 +166,15 @@
       h1{font-size:18px;}
     }
   </style>
-</head>
+
+<script>
+// Clear stale auth when landing on login page
+localStorage.removeItem('bsi_auth');
+localStorage.removeItem('bsi_role');
+localStorage.removeItem('bsi_group');
+localStorage.removeItem('bsi_gname');
+localStorage.removeItem('bsi_label');
+</script></head>
 <body>
 <div class="page">
   <div class="card">

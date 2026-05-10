@@ -408,6 +408,8 @@ function stopTimer() {
   document.getElementById('timerSubtext').textContent = 'Tidak ada timer aktif';
 }
 
+
+const ROUND_ICONS = { r1:'🔍', r2:'📈', r3:'💧', r4:'🛡️', r5:'👥', r6:'🏆' };
 // ─── VIEW ROUND SELECTOR ──────────────────────────────────────────────────
 function setViewRound(rid) {
   currentViewRound = rid;
@@ -591,8 +593,10 @@ function updateRoundInfo(phase) {
     return;
   }
   const r = ROUNDS[rid];
+  const icon = ROUND_ICONS[rid] || '⚡';
   panel.innerHTML = `
-    <div class="round-number">RONDE ${r.number} DARI 4</div>
+    <div class="text-3xl mb-2">${icon}</div>
+    <div class="round-number">RONDE ${r.number} DARI 6</div>
     <div class="round-title">${r.title}</div>
     <div class="round-category">${r.category}</div>
     <div class="round-amanah">Max Amanah Points: ${r.maxAmanah}</div>`;

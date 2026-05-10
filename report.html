@@ -142,7 +142,7 @@ body { background: #f1f5f9; min-height: 100vh; }
         <div class="font-bold text-slate-700 mb-1">SIMULASI (L3)</div>
         <div class="text-slate-500">Bobot: 16/18</div>
         <div class="text-slate-500">Indeks: A=4, B=3, C=2, D=1</div>
-        <div class="text-slate-500">Avg L3 dari 4 ronde</div>
+        <div class="text-slate-500">Avg L3 dari 6 ronde</div>
       </div>
       <div class="bg-bsi-teal bg-opacity-5 rounded-lg p-3 border border-bsi-teal border-opacity-30">
         <div class="font-bold text-bsi-teal mb-1">CPI Formula</div>
@@ -211,7 +211,7 @@ body { background: #f1f5f9; min-height: 100vh; }
           </tr>
         </thead>
         <tbody id="postTestTableBody">
-          <tr><td colspan="10" class="text-center py-8 text-slate-400">Memuat data peserta...</td></tr>
+          <tr><td colspan="12" class="text-center py-8 text-slate-400">Memuat data peserta...</td></tr>
         </tbody>
       </table>
     </div>
@@ -235,6 +235,8 @@ body { background: #f1f5f9; min-height: 100vh; }
             <th>L3 R2</th>
             <th>L3 R3</th>
             <th>L3 R4</th>
+            <th>L3 R5</th>
+            <th>L3 R6</th>
             <th>Avg L3</th>
             <th>Idx SIM</th>
             <th>Idx POST</th>
@@ -244,7 +246,7 @@ body { background: #f1f5f9; min-height: 100vh; }
           </tr>
         </thead>
         <tbody id="finalTableBody">
-          <tr><td colspan="14" class="text-center py-8 text-slate-400">Memuat data...</td></tr>
+          <tr><td colspan="16" class="text-center py-8 text-slate-400">Memuat data...</td></tr>
         </tbody>
       </table>
     </div>
@@ -395,7 +397,7 @@ function renderPostTestTable() {
 
   GROUP_IDS.forEach(gid => {
     const g = GROUPS[gid];
-    rows += `<tr class="gh"><td colspan="10" style="border-left:4px solid ${g.color}">
+    rows += `<tr class="gh"><td colspan="12" style="border-left:4px solid ${g.color}">
       ${g.name}</td></tr>`;
 
     for (let i = 0; i < 6; i++) {
@@ -470,7 +472,7 @@ function renderFinalTable() {
   let rows = '', rank = 1;
   all.forEach(p => {
     const g = GROUPS[p.gid];
-    const l3vals = ROUND_IDS.map(rid => {
+    const l3vals = ['r1','r2','r3','r4','r5','r6'].map(rid => {
       const v = p.l3Scores ? p.l3Scores[rid] : null;
       return v !== null && v !== undefined ? v.toFixed(1) : '—';
     });
@@ -508,6 +510,8 @@ function renderFinalTable() {
       <td class="text-center text-xs">${l3vals[1]}</td>
       <td class="text-center text-xs">${l3vals[2]}</td>
       <td class="text-center text-xs">${l3vals[3]}</td>
+      <td class="text-center text-xs">${l3vals[4]}</td>
+      <td class="text-center text-xs">${l3vals[5]}</td>
       <td class="text-center font-semibold">${avgL3}</td>
       <td class="text-center font-bold text-blue-600">${idxSim}</td>
       <td class="text-center font-bold text-bsi-teal">${idxPost}</td>
@@ -518,7 +522,7 @@ function renderFinalTable() {
     rank++;
   });
 
-  tbody.innerHTML = rows || '<tr><td colspan="14" class="text-center py-8 text-slate-400">Belum ada data</td></tr>';
+  tbody.innerHTML = rows || '<tr><td colspan="16" class="text-center py-8 text-slate-400">Belum ada data</td></tr>';
 }
 
 // ─── GROUP SUMMARY ────────────────────────────────────────────────────────
@@ -674,7 +678,7 @@ async function saveAllPostTests() {
 function exportCSV() {
   const headers = [
     'No','Nama','Kelompok','Post-Test','Indeks POST',
-    'L3 R1','L3 R2','L3 R3','L3 R4','Avg L3','Indeks SIM',
+    'L3 R1','L3 R2','L3 R3','L3 R4','L3 R5','L3 R6','Avg L3','Indeks SIM',
     'CPI','Grade','Status'
   ];
 
@@ -684,7 +688,7 @@ function exportCSV() {
   GROUP_IDS.forEach(gid => {
     for (let i = 0; i < 6; i++) {
       const p = participantData[`${gid}_m${i}`] || {};
-      const l3vals = ROUND_IDS.map(rid => {
+      const l3vals = ['r1','r2','r3','r4','r5','r6'].map(rid => {
         const v = p.l3Scores ? p.l3Scores[rid] : null;
         return v !== null && v !== undefined ? v.toFixed(1) : '';
       });

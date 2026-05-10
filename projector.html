@@ -312,6 +312,12 @@ html, body {
           <button onclick="setViewRound('r4')"
             class="text-xs py-2 px-2 rounded-lg font-bold transition-all"
             style="background:rgba(255,255,255,0.06); color:#94a3b8;" id="vbtn-r4">R4</button>
+          <button onclick="setViewRound('r5')"
+            class="text-xs py-2 px-2 rounded-lg font-bold transition-all"
+            style="background:rgba(255,255,255,0.06); color:#94a3b8;" id="vbtn-r5">R5</button>
+          <button onclick="setViewRound('r6')"
+            class="text-xs py-2 px-2 rounded-lg font-bold transition-all"
+            style="background:rgba(255,255,255,0.06); color:#94a3b8;" id="vbtn-r6">R6</button>
         </div>
       </div>
     </div>
@@ -405,7 +411,7 @@ function stopTimer() {
 // ─── VIEW ROUND SELECTOR ──────────────────────────────────────────────────
 function setViewRound(rid) {
   currentViewRound = rid;
-  ['all','r1','r2','r3','r4'].forEach(k => {
+  ['all','r1','r2','r3','r4','r5','r6'].forEach(k => {
     const btn = document.getElementById('vbtn-' + k);
     const isActive = (k === 'all' && rid === null) || k === rid;
     btn.style.background = isActive ? '#00A39D' : 'rgba(255,255,255,0.06)';

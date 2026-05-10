@@ -15,12 +15,14 @@ const GROUP_IDS = Object.keys(GROUPS);
 
 // ─── ROUNDS ────────────────────────────────────────────────────────────────
 const ROUNDS = {
-  r1: { id:'r1', number:1, title:'Selisih Kas Pak Bagus', category:'Operasional', maxAmanah:50 },
-  r2: { id:'r2', number:2, title:'Pondok 4M',             category:'Pembiayaan',  maxAmanah:65 },
-  r3: { id:'r3', number:3, title:'Restruktur Konflik',    category:'Leadership',  maxAmanah:80 },
-  r4: { id:'r4', number:4, title:'Crisis Compliance',     category:'Capstone',    maxAmanah:100 }
+  r1: { id:'r1', number:1, title:'Diagnose the CM',       category:'Diagnose', maxAmanah:40,  durationMin:100 },
+  r2: { id:'r2', number:2, title:'Grow the Top Line',      category:'Growth',   maxAmanah:50,  durationMin:100 },
+  r3: { id:'r3', number:3, title:'Optimize the Funding',   category:'Funding',  maxAmanah:60,  durationMin:100 },
+  r4: { id:'r4', number:4, title:'Defend Against Erosion', category:'Defend',   maxAmanah:70,  durationMin:100 },
+  r5: { id:'r5', number:5, title:'Lead Through Pressure',  category:'People',   maxAmanah:80,  durationMin:100 },
+  r6: { id:'r6', number:6, title:'Year-End Capstone',      category:'Capstone', maxAmanah:100, durationMin:120 }
 };
-const ROUND_IDS = ['r1','r2','r3','r4'];
+const ROUND_IDS = ['r1','r2','r3','r4','r5','r6'];
 
 // ─── ACCESS CODES ──────────────────────────────────────────────────────────
 const ACCESS_CODES = {

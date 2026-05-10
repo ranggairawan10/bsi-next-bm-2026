@@ -1,20 +1,31 @@
 {
-  "cleanUrls": false,
-  "trailingSlash": false,
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/firebase-config.js",
       "headers": [
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" }
+        { "key": "Cache-Control", "value": "no-store" }
       ]
     },
     {
-      "source": "/assets/(.*)",
+      "source": "/constants.js",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=86400" }
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/(.*)\\.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" },
+        { "key": "X-Frame-Options",        "value": "SAMEORIGIN" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" }
       ]
     }
+  ],
+  "rewrites": [
+    { "source": "/",    "destination": "/index.html" },
+    { "source": "/gm",  "destination": "/gamemaster.html" },
+    { "source": "/proj","destination": "/projector.html" },
+    { "source": "/adm", "destination": "/admin.html" },
+    { "source": "/rpt", "destination": "/report.html" }
   ]
 }
